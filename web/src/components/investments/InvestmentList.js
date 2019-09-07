@@ -39,6 +39,71 @@ class InvestmentList extends React.Component{
         console.log("innate power", wizardInfo[1].toNumber());
     }
 
+    /**
+     * 
+     * @param {number} affinity1 the affinity for the seller wizard
+     * @param {number} affinity2 the affinity of the buyer wizard
+     */
+    calculateSimulatedDuelResults() {
+      // Results in 1 if p1 beats p2, -1 if p2 beats p1
+      // 3 (water) beats 0 (fire) = (1)  | 0 (fire) loses to 1 (water) = (-1)
+      // 4 (wind) beats 1 (water) = (1)  | 1 (water) loses to 2 (wind) = (-1)
+      // 2 (fire) beats 2 (wind)  = (-2) | 2 (wind) loses to 0 (fire)  = (2)
+      const movesConstant = [2,2,2,2];
+      const possibleMoves = [this.moveEnum.fire, this.moveEnum.water, this.moveEnum.wind];
+      // const getWinningMoves = possibleMoves.map(this.getWinningMoveFor);
+
+      const moves = possibleMoves.reduce((duels, possibleMove, i) => {
+        const winningMove = this.getWinningMoveFor(possibleMove);
+        const wizardAMoves = movesConstant.concat(possibleMove);
+        const wizardBMoves = movesConstant.concat(winningMove);
+        duels[i] = {  
+          wizardAMoves,
+          wizardBMoves
+        }
+        return duels;
+      }, {});
+      return moves;
+      console.log({ moves });
+    }
+
+    moveEnum = {
+      fire: 2,
+      water: 3,
+      wind: 4
+    }
+
+    getWinningMoveFor(move) {
+      switch(move) {
+        case this.moveEnum.fire: return this.moveEnum.water;
+        case this.moveEnum.water: return this.moveEnum.wind;
+        case this.moveEnum.wind: return this.moveEnum.fire;
+        default: throw new Error('Move not recognised');
+      }
+    }
+
+    simulateDuels = async (duels) => {
+      var resolver = await createDuelResolver();
+      console.log(duels);
+      const powerPossibilities = await Promise.all(Object.keys(duels).map(async (k) => {
+        const moveSet1 = this.buildMoveSet(duels[k].wizardAMoves);
+        const moveSet2 = this.buildMoveSet(duels[k].wizardBMoves);
+        console.log({
+          moveSet1,
+          moveSet2
+        })
+        var power1 = 71377491748132; //id 5993
+        var power2 = 140091000000000; //id 5977
+        var affinity1 = 3;
+        var affinity2 = 4;
+        var powers = await resolver.resolveDuel(moveSet1, moveSet2, power1, power2, affinity1, affinity2);
+        // console.log("power to transfer", powers.toNumber());
+        return powers.toNumber();
+      }));
+
+      return powerPossibilities;
+    }
+
     wizardDuel = async () => {
         // function resolveDuel(
         //     bytes32 moveSet1,
@@ -59,6 +124,16 @@ class InvestmentList extends React.Component{
         var affinity2 = 4;
         var powers = await resolver.resolveDuel(moveSet1, moveSet2, power1, power2, affinity1, affinity2);
         console.log("power to transfer", powers.toNumber());
+    }
+
+    onGeneratePossibleDuelResults = async () => {
+      const duelResults = await this.simulateDuels(this.calculateSimulatedDuelResults());
+      console.log({ duelResults });
+    };
+
+    buildMoveSet(moves) {
+      const temp = '0x' + moves.map(m => `0${m}`).join('');
+      return temp + '0'.repeat(54);
     }
 
     renderGetWizardById(){
@@ -94,6 +169,7 @@ class InvestmentList extends React.Component{
         )
     }
 
+    renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
     render(){
         // if (!this.props.investments){
@@ -112,6 +188,7 @@ class InvestmentList extends React.Component{
                 {this.renderMoves()}
                 {this.renderWizardDuel()}
                 {this.renderGetWizardById()}
+                {this.renderSimulateWizardDual()}
             </div>
         );
     }
