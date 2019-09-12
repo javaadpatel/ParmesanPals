@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "start": "etherlime compile --buildDirectory=./web/src/contracts/ && cd web && react-scripts start",
-    "build": "cd web react-scripts build",
-    "test": "cd web react-scripts test",
-    "eject": "cd web react-scripts eject"
+    "build": "cd web && react-scripts build",
+    "test": "cd web && react-scripts test",
+    "eject": "cd web && react-scripts eject"
   },
   "dependencies": {
     "axios": "^0.19.0",
