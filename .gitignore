@@ -46,5 +46,4 @@ Thumbs.db
 
 #ignore environment file and configuration file
 .env
-/web/src/configuration/index.js
 /web/build
