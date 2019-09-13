@@ -11,7 +11,10 @@ import {
     FETCH_ALLPAYMENTS,
     WITHDRAW_PAYMENTS,
     FETCH_INVESTMENTMANAGER,
-    UPGRADE_INVESTMENTMANAGER_RANKING
+    UPGRADE_INVESTMENTMANAGER_RANKING,
+    FETCH_WIZARDS_LOADING,
+    FETCH_WIZARDS_SUCCESS,
+    FETCH_WIZARDS_ERROR
 } from './types';
 import {
     createInvestmentFromContract,
@@ -32,6 +35,7 @@ import {
 import history from '../history';
 import uPortConnect from '../ethereum/uPortConnect';
 import {etherScanApiKey} from '../configuration';
+import Axios from 'axios';
 
 const performAction = async (actionType, actionFunc, dispatch) => {
     try{
@@ -276,7 +280,27 @@ export const upgradeInvestmentManagerRanking = (managerAddress) => async dispatc
     });
 }
 
-
+export const getWizardsByOwner = async (ownerAddress) => async dispatch => {
+  try {
+    dispatch({ type: FETCH_WIZARDS_LOADING });
+    const data = await Axios.get('https://cheezewizards.alchemyapi.io/wizards?owner=' + ownerAddress, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-token': '8s53vwYc-Kraljslq-ppV5EbQwq_bYcUWB0jmEXE',
+        'x-email': 'eemandien@gmail.com'
+      },
+    });
+    dispatch({
+      type: FETCH_WIZARDS_SUCCESS,
+      payload: { ownedWizards: data.data }
+    });
+  } catch (err) {
+    dispatch({
+      type: FETCH_WIZARDS_ERROR,
+      payload: { error: true }
+    });
+  }
+}
 
 
 
