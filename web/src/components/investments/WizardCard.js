@@ -1,21 +1,25 @@
 import React from 'react';
-import { Card, Image } from 'semantic-ui-react';
+import { Card, Image, Icon } from 'semantic-ui-react';
 
-export default ({ header, description, meta }) => {
+export default (props) => {
+  const { id, owner, affinity, initialPower, power, eliminatedBlockNumber, createdBlockNumber } = props.wizard;
   return (
     <Card>
       <Image src='' wrapped ui={false} />
       <Card.Content>
-        <Card.Header>{header}</Card.Header>
+        <Card.Header>Wizard ID: {id}</Card.Header>
         <Card.Meta>
-          <span className='date'>{meta}</span>
+          <p style={{ wordWrap: 'break-word' }}>Owner: {owner}</p>
         </Card.Meta>
         <Card.Description>
-          {description}
+          <p> <Icon color='olive' name='leaf' size='large' /> Affinity: {affinity}</p>
+          <p><Icon color='teal' name='lightning' size='large' /> Initial Power: {initialPower}</p>
+          <p><Icon color='yellow' name='lightning' size='large' /> Current Power: {power}</p>
         </Card.Description>
       </Card.Content>
       <Card.Content extra>
-        some extra content
+        <p>Created at block number: {createdBlockNumber}</p>
+        <p>Eliminated at block number: {eliminatedBlockNumber || 'null'}</p>
       </Card.Content>
     </Card>
   );

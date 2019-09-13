@@ -1,16 +1,32 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {fetchInvestments} from '../../actions';
+import {fetchInvestments, getWizardsByOwner} from '../../actions';
 import {Item, Tab, Menu, Label, Segment, Dimmer, Loader, Popup, Icon, Button} from 'semantic-ui-react';
 import {InvestmentStatusEnum} from  '../../constants';
 import { ethers } from 'ethers';
 import {createGateKeeper, createDuelResolver, createWizardGuild} from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
+import WizardCard from './WizardCard';
 
 class InvestmentList extends React.Component{
-    componentDidMount(){
-        // this.props.fetchInvestments();
+  constructor(props) {
+    super(props);
+    this.state = {
+      selectedAddress: '',
+      incorrectNetworkSelected: false
+    };
+  }
+
+  
+
+    componentDidMount() {
+        if(window.web3) {
+          const publicConfigStore = window.web3.currentProvider.publicConfigStore;
+          publicConfigStore.on('update', this.onWalletUpdate);
+          this.setState({ selectedAddress: publicConfigStore._state.selectedAddress });
+          this.state.selectedAddress && this.props.onFetchWizardsByOwner(this.state.selectedAddress);
+        }
     }
 
 
@@ -31,9 +47,11 @@ class InvestmentList extends React.Component{
         console.log(isValid);
     }
 
-    getWizardById = async () =>{
+    
+
+    getWizardById = async () => {
         var wizardGuild = await createWizardGuild();
-        var wizardInfo = await wizardGuild.getWizard(5993);
+        var wizardInfo = await wizardGuild.getWizard(6000);
         console.log("wizard 5993");
         console.log(wizardInfo);
         console.log("innate power", wizardInfo[1].toNumber());
@@ -64,7 +82,6 @@ class InvestmentList extends React.Component{
         return duels;
       }, {});
       return moves;
-      console.log({ moves });
     }
 
     calculateSimulatedDuelResultsV2(winningRound) {
@@ -214,39 +231,64 @@ class InvestmentList extends React.Component{
         )
     }
 
+    onFetchWizardsByOwner = () => {
+      this.state.selectedAddress && this.props.onFetchWizardsByOwner(this.state.selectedAddress);
+    }
+
+    onWalletUpdate = (e) => {
+      this.setState({ 
+        incorrectNetworkSelected: e.networkVersion !== '4',
+        selectedAddress: e.selectedAddress
+      });
+      !this.state.incorrectNetworkSelected && this.props.onFetchWizardsByOwner(this.state.selectedAddress);
+    }
+
     renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
-    render(){
-        // if (!this.props.investments){
-        //     return (
-        //         <Segment padded='very'>
-        //             <Dimmer active inverted>
-        //             <Loader content='Fetching Investments...' />
-        //             </Dimmer>
-        //         </Segment>
-        //     );
-        // }
-
+    render() {
+      const isLoadingMyWizards = this.props.loadingWizards;
         return(
             <div>
-                {this.renderWizard()}
-                {this.renderMoves()}
-                {this.renderWizardDuel()}
-                {this.renderGetWizardById()}
-                {this.renderSimulateWizardDual()}
+              <p>Selected address: {this.state.selectedAddress}</p>
+              <p>
+                Network: &nbsp;
+                {
+                  this.state.incorrectNetworkSelected ? 
+                    <span><Icon color='red' name='warning sign' size='large' /> Needs Rinkeby Test Network</span> : 
+                    <Icon color='green' name='checkmark' size='large' />
+                }
+              </p>
+              {this.renderWizard()}
+              {this.renderMoves()}
+              {this.renderWizardDuel()}
+              {this.renderGetWizardById()}
+              {this.renderSimulateWizardDual()}
+
+              { <Button disabled={isLoadingMyWizards} onClick={this.onFetchWizardsByOwner}>Summon My Wizards</Button>}
+              { 
+                this.props.loadingWizards && (
+                  <div>
+                    <Icon loading name='circle notch' size='big' /> 
+                    <h2>Summoning your wizards...</h2>
+                  </div>
+                )
+              }
+              { this.props.ownedWizards && this.props.ownedWizards.map(w => <WizardCard key={w.id} wizard={w} />) }
             </div>
         );
     }
 }
 
 const mapStateToProps = (state) => {
-    //convert state.investments to array
-    // return {
-    //     investments: Object.values(state.investments),
-    //     isSignedIn: state.auth.isSignedIn
-    // };
+  console.log('mapStateToProps', state.fetchWizards.ownedWizards);
+  return {
+    ownedWizards: state.fetchWizards.ownedWizards,
+    loadingWizards: state.fetchWizards.loading
+  };
 }
 
-export default connect(mapStateToProps, {
-    // fetchInvestments
-})(InvestmentList);
+const mapPropsToDispatch = dispatch => ({
+  onFetchWizardsByOwner: ownerAddress => dispatch(getWizardsByOwner(ownerAddress))
+});
+
+export default connect(mapStateToProps, mapPropsToDispatch)(InvestmentList);
