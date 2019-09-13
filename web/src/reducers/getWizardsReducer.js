@@ -11,9 +11,9 @@ export default (state = initialState, { type, payload }) => {
     case FETCH_WIZARDS_LOADING:
       return { ...state, loading: true, ownedWizards: [] };
     case FETCH_WIZARDS_SUCCESS:
-      return { ...state, ownedWizards: payload.ownedWizards };
+      return { ...state, loading: false, ownedWizards: payload.ownedWizards };
     case FETCH_WIZARDS_ERROR:
-      return { ...state, ownedWizards: [], error: 'Failed to fetch wizards' };
+      return { ...state, loading: false, ownedWizards: [], error: 'Failed to fetch wizards' };
     default:
       return state;
   }

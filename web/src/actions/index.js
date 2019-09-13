@@ -280,26 +280,25 @@ export const upgradeInvestmentManagerRanking = (managerAddress) => async dispatc
     });
 }
 
-export const getWizardsByOwner = async (ownerAddress) => async dispatch => {
-  try {
+export const getWizardsByOwner = (ownerAddress) => async dispatch => {
     dispatch({ type: FETCH_WIZARDS_LOADING });
-    const data = await Axios.get('https://cheezewizards.alchemyapi.io/wizards?owner=' + ownerAddress, {
+    Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
       headers: {
         'Content-Type': 'application/json',
         'x-api-token': '8s53vwYc-Kraljslq-ppV5EbQwq_bYcUWB0jmEXE',
         'x-email': 'eemandien@gmail.com'
       },
+    }).then(response => {
+      dispatch({
+        type: FETCH_WIZARDS_SUCCESS,
+        payload: { ownedWizards: response.data.wizards }
+      });
+    }).catch(err => {
+      dispatch({
+        type: FETCH_WIZARDS_ERROR,
+        payload: { error: true }
+      });
     });
-    dispatch({
-      type: FETCH_WIZARDS_SUCCESS,
-      payload: { ownedWizards: data.data }
-    });
-  } catch (err) {
-    dispatch({
-      type: FETCH_WIZARDS_ERROR,
-      payload: { error: true }
-    });
-  }
 }
 
 
