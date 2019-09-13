@@ -67,6 +67,34 @@ class InvestmentList extends React.Component{
       console.log({ moves });
     }
 
+    calculateSimulatedDuelResultsV2(winningRound) {
+      console.log("simulate round", winningRound);
+      // Results in 1 if p1 beats p2, -1 if p2 beats p1
+      // 3 (water) beats 0 (fire) = (1)  | 0 (fire) loses to 1 (water) = (-1)
+      // 4 (wind) beats 1 (water) = (1)  | 1 (water) loses to 2 (wind) = (-1)
+      // 2 (fire) beats 2 (wind)  = (-2) | 2 (wind) loses to 0 (fire)  = (2)
+      var movesArray = [2,2,2,2,2];
+      const possibleMoves = [this.moveEnum.fire, this.moveEnum.water, this.moveEnum.wind];
+
+      const moves = possibleMoves.reduce((duels, possibleMove, i) => {
+        var newMovesArrayWizardA = movesArray.slice();
+        newMovesArrayWizardA[winningRound-1] = possibleMove;
+        const wizardAMoves = newMovesArrayWizardA;
+        
+        const winningMove = this.getWinningMoveFor(possibleMove);
+        var newMovesArrayWizardB = movesArray.slice();
+        newMovesArrayWizardB[winningRound-1] = winningMove;
+        const wizardBMoves = newMovesArrayWizardB;
+
+        duels[i] = {  
+          wizardAMoves,
+          wizardBMoves
+        }
+        return duels;
+      }, {});
+      return moves;
+    }
+
     moveEnum = {
       fire: 2,
       water: 3,
@@ -84,26 +112,29 @@ class InvestmentList extends React.Component{
 
     simulateDuels = async (duels) => {
       var resolver = await createDuelResolver();
-      console.log(duels);
+      var powerMoveMapping = {};
+      // console.log(duels);
       const powerPossibilities = await Promise.all(Object.keys(duels).map(async (k) => {
         const moveSet1 = this.buildMoveSet(duels[k].wizardAMoves);
         const moveSet2 = this.buildMoveSet(duels[k].wizardBMoves);
-        console.log({
-          moveSet1,
-          moveSet2
-        })
+        // console.log({
+        //   moveSet1,
+        //   moveSet2
+        // })
         var power1 = 71377491748132; //id 5993
         var power2 = 140091000000000; //id 5977
         var affinity1 = 3;
         var affinity2 = 4;
         var powers = await resolver.resolveDuel(moveSet1, moveSet2, power1, power2, affinity1, affinity2);
-        // console.log("power to transfer", powers.toNumber());
-        return powers.toNumber();
+        console.log("power to transfer", powers.toNumber());
+        // return powers.toNumber();
+        powerMoveMapping[powers.toNumber()] = {wizardAMoves: moveSet1, wizardBMoves: moveSet2};
       }));
 
-      return powerPossibilities;
+      return powerMoveMapping;
     }
 
+    //test function no longer used
     wizardDuel = async () => {
         // function resolveDuel(
         //     bytes32 moveSet1,
@@ -127,8 +158,22 @@ class InvestmentList extends React.Component{
     }
 
     onGeneratePossibleDuelResults = async () => {
-      const duelResults = await this.simulateDuels(this.calculateSimulatedDuelResults());
-      console.log({ duelResults });
+      const numberOfRounds = 5;
+      //calculate power transfer possiblities for round5 wins
+      var allPowerTransferPossibilities = {};
+      for(var i = 1; i <= numberOfRounds; i++){
+        console.log('simulating round:', i);
+        var duelMoves = await this.calculateSimulatedDuelResultsV2(i);
+        console.log({duelMoves});
+        // //calculate power transfer possibilities for round4 wins
+        const duelResults = await this.simulateDuels(duelMoves);
+        console.log(`power possibilities in round ${i}`,_.cloneDeep(duelResults));
+        Object.keys(duelResults).map((duelResult) => {
+          allPowerTransferPossibilities[duelResult] = duelResults[duelResult];
+        });
+      }
+
+      console.log("all duel results", allPowerTransferPossibilities);
     };
 
     buildMoveSet(moves) {
