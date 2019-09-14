@@ -306,7 +306,6 @@ export const getWizardsByOwner = (ownerAddress) => dispatch => {
 }
 
 export const registerOnEthProviderUpdate = () => dispatch => {
-  console.log('update registerOnEthProviderUpdate')
   if(window.web3) {
     const publicConfigStore = window.web3.currentProvider.publicConfigStore;
         
@@ -319,7 +318,6 @@ export const registerOnEthProviderUpdate = () => dispatch => {
     });
 
     window.web3.currentProvider.publicConfigStore.on('update', (config) => {
-      console.log(config);
       dispatch({
         type: FETCH_ETH_PROVIDER_SUCCESS,
         payload: {

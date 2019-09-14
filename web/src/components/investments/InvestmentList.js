@@ -236,7 +236,6 @@ class InvestmentList extends React.Component{
 }
 
 const mapStateToProps = (state) => {
-  console.log(state)
   return {
     selectedAddress: state.ethProvider.selectedAddress,
     incorrectNetworkSelected: state.ethProvider.networkVersion !== '4',
