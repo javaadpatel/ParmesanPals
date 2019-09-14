@@ -14,6 +14,7 @@ import Axios from 'axios';
 
 import { createGateKeeper, createWizardPowerExchange } from '../ethereum/gateKeeperFactory';
 import { ethers } from 'ethers';
+import _ from 'lodash';
 
 const performAction = async (actionType, actionFunc, dispatch) => {
     try{
@@ -70,9 +71,33 @@ const callEtherScanApi = async (txnHash) => {
    }
  }
 
+ const createWizardsObjectArray = (rawPayments) =>{
+  var registeredWizards = rawPayments
+      .map((payment) => payment.splice(-4,4))
+      .map((wizard) => { 
+         console.log(wizard);
+          var registeredWizardObject = {};
+          registeredWizardObject.wizardId =  wizard[0].toNumber();
+          registeredWizardObject.pricePerPowerInEther = ethers.utils.formatEther(wizard[1]);
+          registeredWizardObject.ownerAddress =   wizard[2];
+          registeredWizardObject.isRegistered =   wizard[3];
+          return registeredWizardObject;
+  })
+  return registeredWizards;
+}
 
-export const getWizardsByOwner = (ownerAddress) => dispatch => {
+
+export const getWizardsByOwner = (ownerAddress) => async dispatch => {
   dispatch({ type: FETCH_WIZARDS_LOADING });
+
+  //retrieve all registered wizards
+  const registeredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
+  console.log(registeredWizards);
+
+  const registeredWizardsObject = _.mapKeys(createWizardsObjectArray(registeredWizards), 'wizardId');
+  console.log(registeredWizardsObject);
+  
+  // console.log(await wizardPowerExchange.isWizardRegistered(1002))
   Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
     headers: {
       'Content-Type': 'application/json',
@@ -80,9 +105,21 @@ export const getWizardsByOwner = (ownerAddress) => dispatch => {
       'x-email': 'eemandien@gmail.com'
     },
   }).then(response => {
+    var wizards = response.data.wizards;
+    //loop through wizards and get whether the wizard is registered `registeredForPowerExchange`
+    var enrichedWizards = wizards.map((wizard) => {
+      if(registeredWizardsObject[wizard.id] === undefined){
+        wizard.isRegistered = false;
+      } else{
+        wizard.isRegistered = registeredWizardsObject[wizard.id].isRegistered;
+      }
+      return wizard;
+    });
+
     dispatch({
       type: FETCH_WIZARDS_SUCCESS,
-      payload: { ownedWizards: response.data.wizards }
+      // payload: { ownedWizards: response.data.wizards }
+      payload: { ownedWizards: enrichedWizards }
     });
   }).catch(err => {
     dispatch({
@@ -155,9 +192,6 @@ export const registerWizard = (formValues, wizardId) => async dispatch => {
     await wizardPowerExchange.registerWizard(wizardId, ethers.utils.parseEther(formValues.amount));
 
     console.log("registered wizard");
-    //fetch investment
-    // var investment = await fetchInvestmentFromContract(contractAddress);
-
 
     dispatch({
             type: REGISTER_WIZARD,
