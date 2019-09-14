@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
 import {fetchInvestments, getWizardsByOwner} from '../../actions';
 import {Item, Tab, Menu, Label, Segment, Dimmer, Loader, Popup, Icon, Button} from 'semantic-ui-react';
-import {InvestmentStatusEnum} from  '../../constants';
 import { ethers } from 'ethers';
 import {createGateKeeper, createDuelResolver, createWizardGuild} from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
@@ -280,7 +279,6 @@ class InvestmentList extends React.Component{
 }
 
 const mapStateToProps = (state) => {
-  console.log('mapStateToProps', state.fetchWizards.ownedWizards);
   return {
     ownedWizards: state.fetchWizards.ownedWizards,
     loadingWizards: state.fetchWizards.loading
