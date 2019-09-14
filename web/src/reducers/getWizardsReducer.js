@@ -1,4 +1,8 @@
-import { FETCH_WIZARDS_SUCCESS, FETCH_WIZARDS_ERROR, FETCH_WIZARDS_LOADING } from '../actions/types';
+import { 
+  FETCH_WIZARDS_SUCCESS, 
+  FETCH_WIZARDS_ERROR, 
+  FETCH_WIZARDS_LOADING, 
+} from '../actions/types';
 
 const initialState = {
   loading: false,
@@ -13,7 +17,7 @@ export default (state = initialState, { type, payload }) => {
     case FETCH_WIZARDS_SUCCESS:
       return { ...state, loading: false, ownedWizards: payload.ownedWizards };
     case FETCH_WIZARDS_ERROR:
-      return { ...state, loading: false, ownedWizards: [], error: 'Failed to fetch wizards' };
+      return { ...state, loading: false, ownedWizards: [], error: true };
     default:
       return state;
   }

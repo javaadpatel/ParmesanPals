@@ -9,7 +9,7 @@ import { registerOnEthProviderUpdate } from '../actions/index';
 const App = (props) => {
   props.registerEthProviderUpdate();
   return (
-    <div className="ui ">
+    <div className="ui container">
       <Router history={history}>
         <Header />
         <VerticalMenu />

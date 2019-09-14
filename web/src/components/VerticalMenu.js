@@ -15,7 +15,7 @@ export default class extends Component {
 
   render() {
     return (
-      <Grid columns='equal'>
+      <Grid stackable columns='equal'>
         <Grid.Row>
           <Grid.Column width={4}>
             <Menu pointing secondary vertical>

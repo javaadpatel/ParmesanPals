@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {Item, Tab, Menu, Label, Segment, Dimmer, Loader, Popup, Icon, Button} from 'semantic-ui-react';
 import { ethers } from 'ethers';
-import {createGateKeeper, createDuelResolver, createWizardGuild} from '../../ethereum/gateKeeperFactory';
+import { createDuelResolver, createWizardGuild } from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
 
 class InvestmentList extends React.Component{
@@ -10,19 +10,11 @@ class InvestmentList extends React.Component{
     super(props);
   }
 
-    createWizard = async () => {
-        var gateKeeper = await createGateKeeper();
-        console.log(gateKeeper);
-        // var paymentTxn = await investmentInstance.pay({value: ethers.utils.parseEther(paymentInWei)});
-        var txn = await gateKeeper.conjureWizard(3,{value: ethers.utils.parseEther("0.1")});
-        await gateKeeper.verboseWaitForTransaction(txn);
-        console.log("created");
-    }
 
     moveSet = async () => {
         var resolver = await createDuelResolver();
         console.log(resolver);
-//valid 2 - 4
+        //valid 2 - 4
         var isValid = await resolver.isValidMoveSet("0x0303030303000000000000000000000000000000000000000000000000000000");
         console.log(isValid);
     }

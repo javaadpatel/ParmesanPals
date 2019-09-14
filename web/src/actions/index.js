@@ -16,7 +16,9 @@ import {
     FETCH_WIZARDS_SUCCESS,
     FETCH_WIZARDS_ERROR,
     FETCH_ETH_PROVIDER_SUCCESS,
-    FETCH_ETH_PROVIDER_ERROR
+    FETCH_ETH_PROVIDER_ERROR,
+    CREATE_WIZARD_SUCCESS,
+    CREATE_WIZARD_ERROR
 } from './types';
 import {
     createInvestmentFromContract,
@@ -38,6 +40,9 @@ import history from '../history';
 import uPortConnect from '../ethereum/uPortConnect';
 import {etherScanApiKey} from '../configuration';
 import Axios from 'axios';
+
+import { createGateKeeper } from '../ethereum/gateKeeperFactory';
+import { ethers } from 'ethers';
 
 const performAction = async (actionType, actionFunc, dispatch) => {
     try{
@@ -283,8 +288,6 @@ export const upgradeInvestmentManagerRanking = (managerAddress) => async dispatc
 }
 
 export const getWizardsByOwner = (ownerAddress) => dispatch => {
-  console.log('fetching wizards by owner', ownerAddress);
-
   dispatch({ type: FETCH_WIZARDS_LOADING });
   Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
     headers: {
@@ -334,5 +337,20 @@ export const registerOnEthProviderUpdate = () => dispatch => {
   }
 }
 
-
-
+export const createWizard = () => async dispatch => {
+  try {
+    const gateKeeper = await createGateKeeper();
+    const txn = await gateKeeper.conjureWizard(3, { value: ethers.utils.parseEther('0.1') });
+    await gateKeeper.verboseWaitForTransaction(txn, '');
+    dispatch({
+      type: CREATE_WIZARD_SUCCESS,
+      payload: { }
+    });
+  } catch (err) {
+    console.log('dispatching', err)
+    dispatch({
+      type: CREATE_WIZARD_ERROR,
+      payload: { }
+    });
+  }
+}
