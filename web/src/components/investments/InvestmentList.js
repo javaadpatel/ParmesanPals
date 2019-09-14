@@ -1,33 +1,14 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
-import {fetchInvestments, getWizardsByOwner} from '../../actions';
 import {Item, Tab, Menu, Label, Segment, Dimmer, Loader, Popup, Icon, Button} from 'semantic-ui-react';
 import { ethers } from 'ethers';
 import {createGateKeeper, createDuelResolver, createWizardGuild} from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
-import WizardCard from './WizardCard';
 
 class InvestmentList extends React.Component{
   constructor(props) {
     super(props);
-    this.state = {
-      selectedAddress: '',
-      incorrectNetworkSelected: false
-    };
   }
-
-  
-
-    componentDidMount() {
-        if(window.web3) {
-          const publicConfigStore = window.web3.currentProvider.publicConfigStore;
-          publicConfigStore.on('update', this.onWalletUpdate);
-          this.setState({ selectedAddress: publicConfigStore._state.selectedAddress });
-          this.state.selectedAddress && this.props.onFetchWizardsByOwner(this.state.selectedAddress);
-        }
-    }
-
 
     createWizard = async () => {
         var gateKeeper = await createGateKeeper();
@@ -230,31 +211,18 @@ class InvestmentList extends React.Component{
         )
     }
 
-    onFetchWizardsByOwner = () => {
-      this.state.selectedAddress && this.props.onFetchWizardsByOwner(this.state.selectedAddress);
-    }
-
-    onWalletUpdate = (e) => {
-      this.setState({ 
-        incorrectNetworkSelected: e.networkVersion !== '4',
-        selectedAddress: e.selectedAddress
-      });
-      !this.state.incorrectNetworkSelected && this.props.onFetchWizardsByOwner(this.state.selectedAddress);
-    }
-
     renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
     render() {
-      const isLoadingMyWizards = this.props.loadingWizards;
         return(
             <div>
-              <p>Selected address: {this.state.selectedAddress}</p>
-              <p>
+              <p>Selected address: {this.props.selectedAddress}</p>
+              <p title={!this.props.incorrectNetworkSelected ? 'Connected to Rinkeby' : ''}>
                 Network: &nbsp;
                 {
-                  this.state.incorrectNetworkSelected ? 
-                    <span><Icon color='red' name='warning sign' size='large' /> Needs Rinkeby Test Network</span> : 
-                    <Icon color='green' name='checkmark' size='large' />
+                  this.props.incorrectNetworkSelected ? 
+                    <span ><Icon color='red' name='circle thin' size='large' /> Needs Rinkeby Test Network</span> : 
+                    <Icon  color='green' name='circle thin' size='large' />
                 }
               </p>
               {this.renderWizard()}
@@ -262,31 +230,17 @@ class InvestmentList extends React.Component{
               {this.renderWizardDuel()}
               {this.renderGetWizardById()}
               {this.renderSimulateWizardDual()}
-
-              { <Button disabled={isLoadingMyWizards} onClick={this.onFetchWizardsByOwner}>Summon My Wizards</Button>}
-              { 
-                this.props.loadingWizards && (
-                  <div>
-                    <Icon loading name='circle notch' size='big' /> 
-                    <h2>Summoning your wizards...</h2>
-                  </div>
-                )
-              }
-              { this.props.ownedWizards && this.props.ownedWizards.map(w => <WizardCard key={w.id} wizard={w} />) }
             </div>
         );
     }
 }
 
 const mapStateToProps = (state) => {
+  console.log(state)
   return {
-    ownedWizards: state.fetchWizards.ownedWizards,
-    loadingWizards: state.fetchWizards.loading
+    selectedAddress: state.ethProvider.selectedAddress,
+    incorrectNetworkSelected: state.ethProvider.networkVersion !== '4',
   };
 }
 
-const mapPropsToDispatch = dispatch => ({
-  onFetchWizardsByOwner: ownerAddress => dispatch(getWizardsByOwner(ownerAddress))
-});
-
-export default connect(mapStateToProps, mapPropsToDispatch)(InvestmentList);
+export default connect(mapStateToProps, null)(InvestmentList);

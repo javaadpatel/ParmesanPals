@@ -14,7 +14,9 @@ import {
     UPGRADE_INVESTMENTMANAGER_RANKING,
     FETCH_WIZARDS_LOADING,
     FETCH_WIZARDS_SUCCESS,
-    FETCH_WIZARDS_ERROR
+    FETCH_WIZARDS_ERROR,
+    FETCH_ETH_PROVIDER_SUCCESS,
+    FETCH_ETH_PROVIDER_ERROR
 } from './types';
 import {
     createInvestmentFromContract,
@@ -280,28 +282,59 @@ export const upgradeInvestmentManagerRanking = (managerAddress) => async dispatc
     });
 }
 
-export const getWizardsByOwner = (ownerAddress) => async dispatch => {
-    dispatch({ type: FETCH_WIZARDS_LOADING });
-    Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-token': '8s53vwYc-Kraljslq-ppV5EbQwq_bYcUWB0jmEXE',
-        'x-email': 'eemandien@gmail.com'
-      },
-    }).then(response => {
-      dispatch({
-        type: FETCH_WIZARDS_SUCCESS,
-        payload: { ownedWizards: response.data.wizards }
-      });
-    }).catch(err => {
-      dispatch({
-        type: FETCH_WIZARDS_ERROR,
-        payload: { error: true }
-      });
+export const getWizardsByOwner = (ownerAddress) => dispatch => {
+  console.log('fetching wizards by owner', ownerAddress);
+
+  dispatch({ type: FETCH_WIZARDS_LOADING });
+  Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-token': '8s53vwYc-Kraljslq-ppV5EbQwq_bYcUWB0jmEXE',
+      'x-email': 'eemandien@gmail.com'
+    },
+  }).then(response => {
+    dispatch({
+      type: FETCH_WIZARDS_SUCCESS,
+      payload: { ownedWizards: response.data.wizards }
     });
+  }).catch(err => {
+    dispatch({
+      type: FETCH_WIZARDS_ERROR,
+      payload: { error: true }
+    });
+  });
 }
 
+export const registerOnEthProviderUpdate = () => dispatch => {
+  console.log('update registerOnEthProviderUpdate')
+  if(window.web3) {
+    const publicConfigStore = window.web3.currentProvider.publicConfigStore;
+        
+    dispatch({
+      type: FETCH_ETH_PROVIDER_SUCCESS,
+      payload: {
+        selectedAddress: publicConfigStore._state.selectedAddress,
+        networkVersion: publicConfigStore._state.networkVersion
+      }
+    });
 
+    window.web3.currentProvider.publicConfigStore.on('update', (config) => {
+      console.log(config);
+      dispatch({
+        type: FETCH_ETH_PROVIDER_SUCCESS,
+        payload: {
+          selectedAddress: config.selectedAddress,
+          networkVersion: config.networkVersion
+        }
+      });
+    });
+  } else {
+    dispatch({
+      type: FETCH_ETH_PROVIDER_ERROR,
+      payload: { error: true }
+    });
+  }
+}
 
 
 
