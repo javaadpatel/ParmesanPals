@@ -25,7 +25,7 @@ const MyWizards = (props) => {
         props.ownedWizards && (
           <div>
             <Grid stackable columns='equal'>
-              {props.ownedWizards.concat(props.ownedWizards).map(w => (
+              {props.ownedWizards.map(w => (
                 <Grid.Column>
                   <WizardCard key={w.id} wizard={w} />
                 </Grid.Column>

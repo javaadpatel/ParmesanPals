@@ -7,8 +7,6 @@ import MyWizards from './investments/MyWizards';
 export default class extends Component {
   constructor (props) {
     super(props);
-    console.log({ props}, window.location)
-    this.state = { activeItem: 'Home' };
   }
 
   handleItemClick = (e, { name }) => {
@@ -16,8 +14,6 @@ export default class extends Component {
   }
 
   render() {
-    const { activeItem } = this.state;
-
     return (
       <Grid columns='equal'>
         <Grid.Row>
@@ -26,17 +22,17 @@ export default class extends Component {
 
               <Menu.Item as={Link} to='/'
                 name='Home'
-                active={activeItem === 'Home'}
+                active={window.location.pathname === '/'}
                 onClick={this.handleItemClick}
               />
               <Menu.Item as={Link} to='/wizards'
                 name='My Wizards'
-                active={activeItem === 'My Wizards'}
+                active={window.location.pathname === '/wizards'}
                 onClick={this.handleItemClick}
               />
               <Menu.Item as={Link} to="/simulation"
                 name='Duel Simulation'
-                active={activeItem === 'Duel Simulation'}
+                active={window.location.pathname === '/simulation'}
                 onClick={this.handleItemClick}
               />
             </Menu>
