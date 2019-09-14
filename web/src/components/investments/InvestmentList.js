@@ -204,7 +204,6 @@ class InvestmentList extends React.Component{
 
     renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
-<<<<<<< HEAD
     renderPowerTransferSlider = () =>{
       if (!_.isEmpty(this.state.powerTransferPossibilities)){
         console.log("slider rendering")
