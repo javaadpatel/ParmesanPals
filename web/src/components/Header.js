@@ -1,14 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Icon } from 'semantic-ui-react';
 
 const Header = () => {
   return (
-    <div className="ui secondary pointing menu">
-      <Link style={{ fontSize: '26px' }} to="/" className="item"> 
+    <div className="ui secondary pointing menu light-border">
+      <h1 className="item site-header"> 
         Parmesan Pals 
         <Icon name='wizard' size='big' /> 
-      </Link>
+      </h1>
     </div>
   );
 };
