@@ -2,9 +2,13 @@ import React from 'react';
 import { Card, Icon, Button, Grid} from 'semantic-ui-react';
 import Modal from '../Modal';
 import WizardRegistrationFrom from './WizardRegistrationForm';
+import {deregisterWizard} from '../../actions';
+import {connect} from 'react-redux';
+import {createLoadingSelector, createErrorMessageSelector} from '../../selectors';
+import {DEREGISTER_WIZARD} from '../../actions/types';
 
 class WizardCard extends React.Component{
-  state = {showRegistrationModal: false, selectedWizardId: null}
+  state = {showRegistrationModal: false, showDeregisterModal: false, selectedWizardId: null}
 
   renderRegistrationModalContent = () => {
     return (
@@ -32,16 +36,60 @@ class WizardCard extends React.Component{
     }
   }
 
-  renderPowerRegistrationButton(){
+  renderDeregistrationModalContent = () => {
+    return (
+        <Grid>
+          <Grid.Row centered>
+            <Grid.Column width={6}>
+             This will remove wizard from power exchange listing
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+    );
+  }
+
+  renderDeregisterModalActions = () => {
     return(
-    <Button fluid onClick={() => this.setState({showRegistrationModal: true, selectedWizardId: this.props.wizard.id})}>
-      Register 
-    </Button>
+      <>
+       <Button primary onClick={() => this.props.deregisterWizard(this.props.wizard.id)} loading={this.props.isFetching}>
+           Deregister Wizard
+       </Button>
+      </>
     )
+  }
+
+  renderDeregisterModal = () => {
+    if (this.state.showDeregisterModal){
+      return (
+        <Modal 
+        title={`Deregister wizard ${this.state.selectedWizardId} from power exchange`}
+        content={this.renderDeregistrationModalContent()}
+        actions={this.renderDeregisterModalActions()}
+        onDismiss={() => this.setState({showDeregisterModal: false})}
+        />
+        )
+    }
+  }
+
+  renderPowerRegistrationButton(){
+    if (this.props.wizard.isRegistered){
+      return(
+        <Button fluid color='red' onClick={() => this.setState({showDeregisterModal: true, selectedWizardId: this.props.wizard.id})}>
+          Unregister 
+        </Button>
+        )
+    } else {
+      return(
+        <Button fluid primary onClick={() => this.setState({showRegistrationModal: true, selectedWizardId: this.props.wizard.id})}>
+          Register 
+        </Button>
+        )
+    }
   }  
 
   render(){
-  const { id, owner, affinity, initialPower, power, eliminatedBlockNumber, createdBlockNumber } = this.props.wizard;
+  const { id, owner, affinity, initialPower, power, eliminatedBlockNumber, createdBlockNumber, isRegistered } = this.props.wizard;
+  console.log(isRegistered);
   return (
     <Card>
       <Card.Content>
@@ -60,10 +108,22 @@ class WizardCard extends React.Component{
         <p>Eliminated at block number: {eliminatedBlockNumber || 'null'}</p>
         {this.renderPowerRegistrationButton()}
         {this.renderRegistrationModal()}
+        {this.renderDeregisterModal()}
       </Card.Content>
     </Card>
   );
   }
 }
 
-export default WizardCard;
+const loadingSelector = createLoadingSelector([DEREGISTER_WIZARD]);
+const errorSelector = createErrorMessageSelector([DEREGISTER_WIZARD]);
+const mapStateToProps = (state) => {
+    return {
+        isFetching: loadingSelector(state),
+        error: errorSelector(state)
+    }
+}
+
+export default connect(mapStateToProps, {
+  deregisterWizard
+})(WizardCard);

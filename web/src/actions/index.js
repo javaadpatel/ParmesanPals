@@ -7,6 +7,7 @@ import {
     CREATE_WIZARD_SUCCESS,
     CREATE_WIZARD_ERROR,
     REGISTER_WIZARD,
+    DEREGISTER_WIZARD,
     FETCH_REGISTERED_WIZARDS
 } from './types';
 import {etherScanApiKey} from '../configuration';
@@ -197,5 +198,20 @@ export const registerWizard = (formValues, wizardId) => async dispatch => {
             type: REGISTER_WIZARD,
             payload: null
         })
-}, dispatch);
+  }, dispatch);
+}
+
+export const deregisterWizard = (wizardId) => async dispatch => {
+  await performAction(DEREGISTER_WIZARD, async () => {
+    //register wizard in investment
+    const wizardPowerExchange = await createWizardPowerExchange();
+    await wizardPowerExchange.unregisterWizard(wizardId);
+
+    console.log("deregistered wizard");
+
+    dispatch({
+            type: DEREGISTER_WIZARD,
+            payload: null
+        })
+  }, dispatch);
 }
