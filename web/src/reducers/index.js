@@ -7,7 +7,7 @@ import investmentPaymentsReducer from './investPaymentsReducer';
 import loadingReducer from './loadingReducer';
 import errorReducer from './errorReducer';
 import authReducer from './authReducer';
-import getWizardsReducer from './myWizardsReducer';
+import getWizardsReducer from './getWizardsReducer';
 import ethProviderReducer from './ethProviderReducer';
 import createWizardReducer from './createWizardReducer';
 
