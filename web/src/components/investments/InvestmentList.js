@@ -179,14 +179,6 @@ class InvestmentList extends React.Component{
     }
 
 
-    renderWizard(){
-        return(
-           <Button onClick={this.createWizard}>
-               Create Wizard
-           </Button>
-        )
-    }
-
     renderMoves(){
         return(
             <Button onClick={this.moveSet}>
@@ -217,7 +209,6 @@ class InvestmentList extends React.Component{
                     <Icon  color='green' name='circle thin' size='large' />
                 }
               </p>
-              {this.renderWizard()}
               {this.renderMoves()}
               {this.renderWizardDuel()}
               {this.renderGetWizardById()}

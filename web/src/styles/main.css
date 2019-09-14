@@ -31,3 +31,13 @@ body {
   opacity: 1;
   border-color: #F4D35E;
 }
+
+i.icon.loading {
+  animation: icon-loading .8s linear infinite
+}
+
+.ui.padded.segment.transparent {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}

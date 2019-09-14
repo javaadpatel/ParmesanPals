@@ -49,15 +49,15 @@ class MyWizards extends React.Component {
         </div>
         {
           loadingWizards && (
-            <center>
-              <Loader active inline size='big' />
+            <Segment className='transparent' padded textAlign='center' >
+              <Icon name='circle notch' loading size='big' color='yellow' />
               <h2>Summoning your wizards...</h2>
-            </center>
+            </Segment>
           )
         }
         {
           ownedWizards && (
-            <div>
+            <Segment padded className='transparent'>
               <Grid stackable columns='3'>
                 {ownedWizards.map(w => (
                   <Grid.Column key={w.id}>
@@ -65,7 +65,7 @@ class MyWizards extends React.Component {
                   </Grid.Column>
                 ))}
               </Grid>
-            </div>
+            </Segment>
           )
         }
       </div>
