@@ -7,6 +7,9 @@ import investmentPaymentsReducer from './investPaymentsReducer';
 import loadingReducer from './loadingReducer';
 import errorReducer from './errorReducer';
 import authReducer from './authReducer';
+import getWizardsReducer from './getWizardsReducer';
+import ethProviderReducer from './ethProviderReducer';
+import createWizardReducer from './createWizardReducer';
 
 export default combineReducers({
     auth: authReducer,
@@ -16,5 +19,8 @@ export default combineReducers({
     investmentContributions: investmentContributionReducer,
     payments: investmentPaymentsReducer,
     loading: loadingReducer,
-    errors: errorReducer
+    errors: errorReducer,
+    fetchWizards: getWizardsReducer,
+    ethProvider: ethProviderReducer,
+    createWizard: createWizardReducer
 });

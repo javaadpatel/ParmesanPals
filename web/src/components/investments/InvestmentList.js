@@ -1,11 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
-import {fetchInvestments} from '../../actions';
 import {Item, Tab, Menu, Label, Segment, Dimmer, Loader, Popup, Icon, Button} from 'semantic-ui-react';
-import {InvestmentStatusEnum} from  '../../constants';
 import { ethers } from 'ethers';
-import {createGateKeeper, createDuelResolver, createWizardGuild} from '../../ethereum/gateKeeperFactory';
+import { createDuelResolver, createWizardGuild } from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
 import 'rc-slider/assets/index.css';
 import 'rc-tooltip/assets/bootstrap.css';
@@ -13,31 +10,25 @@ import Slider from 'rc-slider';
 
 class InvestmentList extends React.Component{
     state = {powerTransferPossibilities: {}, selectedPowerPossibility: 0};
-    componentDidMount(){
-        // this.props.fetchInvestments();
+
+    constructor(props) {
+      super(props);
     }
 
-
-    createWizard = async () => {
-        var gateKeeper = await createGateKeeper();
-        console.log(gateKeeper);
-        // var paymentTxn = await investmentInstance.pay({value: ethers.utils.parseEther(paymentInWei)});
-        var txn = await gateKeeper.conjureWizard(3,{value: ethers.utils.parseEther("0.1")});
-        await gateKeeper.verboseWaitForTransaction(txn);
-        console.log("created");
-    }
 
     moveSet = async () => {
         var resolver = await createDuelResolver();
         console.log(resolver);
-//valid 2 - 4
+        //valid 2 - 4
         var isValid = await resolver.isValidMoveSet("0x0303030303000000000000000000000000000000000000000000000000000000");
         console.log(isValid);
     }
 
-    getWizardById = async () =>{
+    
+
+    getWizardById = async () => {
         var wizardGuild = await createWizardGuild();
-        var wizardInfo = await wizardGuild.getWizard(5993);
+        var wizardInfo = await wizardGuild.getWizard(6000);
         console.log("wizard 5993");
         console.log(wizardInfo);
         console.log("innate power", wizardInfo[1].toNumber());
@@ -68,7 +59,6 @@ class InvestmentList extends React.Component{
         return duels;
       }, {});
       return moves;
-      console.log({ moves });
     }
 
     calculateSimulatedDuelResultsV2(winningRound) {
@@ -196,14 +186,6 @@ class InvestmentList extends React.Component{
     }
 
 
-    renderWizard(){
-        return(
-           <Button onClick={this.createWizard}>
-               Create Wizard
-           </Button>
-        )
-    }
-
     renderMoves(){
         return(
             <Button onClick={this.moveSet}>
@@ -222,6 +204,7 @@ class InvestmentList extends React.Component{
 
     renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
+<<<<<<< HEAD
     renderPowerTransferSlider = () =>{
       if (!_.isEmpty(this.state.powerTransferPossibilities)){
         console.log("slider rendering")
@@ -258,38 +241,32 @@ class InvestmentList extends React.Component{
       this.setState({selectedPowerPossibility: value});
     }
 
-    render(){
-        // if (!this.props.investments){
-        //     return (
-        //         <Segment padded='very'>
-        //             <Dimmer active inverted>
-        //             <Loader content='Fetching Investments...' />
-        //             </Dimmer>
-        //         </Segment>
-        //     );
-        // }
-
+    render() {
         return(
             <div>
-                {this.renderWizard()}
-                {this.renderMoves()}
-                {this.renderWizardDuel()}
-                {this.renderGetWizardById()}
-                {this.renderSimulateWizardDual()}
-                {this.renderPowerTransferSlider()}
+              <p>Selected address: {this.props.selectedAddress}</p>
+              <p title={!this.props.incorrectNetworkSelected ? 'Connected to Rinkeby' : ''}>
+                Network: &nbsp;
+                {
+                  this.props.incorrectNetworkSelected ? 
+                    <span ><Icon color='red' name='circle thin' size='large' /> Needs Rinkeby Test Network</span> : 
+                    <Icon  color='green' name='circle thin' size='large' />
+                }
+              </p>
+              {this.renderMoves()}
+              {this.renderWizardDuel()}
+              {this.renderGetWizardById()}
+              {this.renderSimulateWizardDual()}
             </div>
         );
     }
 }
 
 const mapStateToProps = (state) => {
-    //convert state.investments to array
-    // return {
-    //     investments: Object.values(state.investments),
-    //     isSignedIn: state.auth.isSignedIn
-    // };
+  return {
+    selectedAddress: state.ethProvider.selectedAddress,
+    incorrectNetworkSelected: state.ethProvider.networkVersion !== '4',
+  };
 }
 
-export default connect(mapStateToProps, {
-    // fetchInvestments
-})(InvestmentList);
+export default connect(mapStateToProps, null)(InvestmentList);

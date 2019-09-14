@@ -11,7 +11,14 @@ import {
     FETCH_ALLPAYMENTS,
     WITHDRAW_PAYMENTS,
     FETCH_INVESTMENTMANAGER,
-    UPGRADE_INVESTMENTMANAGER_RANKING
+    UPGRADE_INVESTMENTMANAGER_RANKING,
+    FETCH_WIZARDS_LOADING,
+    FETCH_WIZARDS_SUCCESS,
+    FETCH_WIZARDS_ERROR,
+    FETCH_ETH_PROVIDER_SUCCESS,
+    FETCH_ETH_PROVIDER_ERROR,
+    CREATE_WIZARD_SUCCESS,
+    CREATE_WIZARD_ERROR
 } from './types';
 import {
     createInvestmentFromContract,
@@ -32,6 +39,10 @@ import {
 import history from '../history';
 import uPortConnect from '../ethereum/uPortConnect';
 import {etherScanApiKey} from '../configuration';
+import Axios from 'axios';
+
+import { createGateKeeper } from '../ethereum/gateKeeperFactory';
+import { ethers } from 'ethers';
 
 const performAction = async (actionType, actionFunc, dispatch) => {
     try{
@@ -276,9 +287,70 @@ export const upgradeInvestmentManagerRanking = (managerAddress) => async dispatc
     });
 }
 
+export const getWizardsByOwner = (ownerAddress) => dispatch => {
+  dispatch({ type: FETCH_WIZARDS_LOADING });
+  Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-token': '8s53vwYc-Kraljslq-ppV5EbQwq_bYcUWB0jmEXE',
+      'x-email': 'eemandien@gmail.com'
+    },
+  }).then(response => {
+    dispatch({
+      type: FETCH_WIZARDS_SUCCESS,
+      payload: { ownedWizards: response.data.wizards }
+    });
+  }).catch(err => {
+    dispatch({
+      type: FETCH_WIZARDS_ERROR,
+      payload: { error: true }
+    });
+  });
+}
 
+export const registerOnEthProviderUpdate = () => dispatch => {
+  if(window.web3) {
+    const publicConfigStore = window.web3.currentProvider.publicConfigStore;
+        
+    dispatch({
+      type: FETCH_ETH_PROVIDER_SUCCESS,
+      payload: {
+        selectedAddress: publicConfigStore._state.selectedAddress,
+        networkVersion: publicConfigStore._state.networkVersion
+      }
+    });
 
+    window.web3.currentProvider.publicConfigStore.on('update', (config) => {
+      dispatch({
+        type: FETCH_ETH_PROVIDER_SUCCESS,
+        payload: {
+          selectedAddress: config.selectedAddress,
+          networkVersion: config.networkVersion
+        }
+      });
+    });
+  } else {
+    dispatch({
+      type: FETCH_ETH_PROVIDER_ERROR,
+      payload: { error: true }
+    });
+  }
+}
 
-
-
-
+export const createWizard = () => async dispatch => {
+  try {
+    const gateKeeper = await createGateKeeper();
+    const txn = await gateKeeper.conjureWizard(3, { value: ethers.utils.parseEther('0.1') });
+    await gateKeeper.verboseWaitForTransaction(txn, '');
+    dispatch({
+      type: CREATE_WIZARD_SUCCESS,
+      payload: { }
+    });
+  } catch (err) {
+    console.log('dispatching', err)
+    dispatch({
+      type: CREATE_WIZARD_ERROR,
+      payload: { }
+    });
+  }
+}

@@ -1,21 +1,15 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
-import UPortAuth from './UPortAuth';
+import { Icon } from 'semantic-ui-react';
 
 const Header = () => {
-    return (
-        <div className="ui secondary pointing menu">
-            <Link to="/" className="item">
-                Pegasus Investments
-            </Link>
-            <div className="right menu">
-                <Link to="/" className="item">
-                    All Investments
-                </Link>
-                <UPortAuth />
-            </div>
-        </div>
-    );
+  return (
+    <div className="ui secondary pointing menu light-border">
+      <h1 className="item site-header"> 
+        Parmesan Pals 
+        <Icon name='wizard' size='big' /> 
+      </h1>
+    </div>
+  );
 };
 
 export default Header;

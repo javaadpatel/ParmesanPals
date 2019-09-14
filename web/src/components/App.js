@@ -1,27 +1,32 @@
 import React from 'react';
-import {Router, Route, Switch} from 'react-router-dom';
-
+import { Router } from 'react-router-dom';
+import { connect } from 'react-redux';
 import Header from './Header';
-import InvestmentList from './investments/InvestmentList';
-import InvestmentCreate from './investments/InvestmentCreate';
-import InvestmentShow from './investments/InvestmentShow';
 import history from '../history';
+import VerticalMenu from './VerticalMenu';
+import { registerOnEthProviderUpdate } from '../actions/index';
 
-const App = () => {
-    return (
-        <div className="ui container">
-            <Router history={history}>
-                <div>
-                    <Header />
-                    <Switch>
-                        <Route path="/" exact component={InvestmentList} />
-                        <Route path="/investments/new" exact component={InvestmentCreate} />
-                        <Route path="/investments/:address" exact component={InvestmentShow} />
-                    </Switch>
-                </div>
-            </Router>
-        </div>
-    );
+const App = (props) => {
+  props.registerEthProviderUpdate();
+  return (
+    <div className="ui container">
+      <Router history={history}>
+        <Header />
+        <VerticalMenu />
+      </Router>
+    </div>
+  );
 };
 
-export default App;
+const mapStateToProps = (state) => {
+  return {
+    selectedAddress: state.ethProvider.selectedAddress,
+    incorrectNetworkSelected: state.ethProvider.incorrectNetworkSelected
+  };
+}
+
+const mapDispatchToProps = dispatch => ({
+  registerEthProviderUpdate: () => dispatch(registerOnEthProviderUpdate())
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
