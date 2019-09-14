@@ -93,10 +93,7 @@ export const getWizardsByOwner = (ownerAddress) => async dispatch => {
 
   //retrieve all registered wizards
   const registeredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
-  console.log(registeredWizards);
-
   const registeredWizardsObject = _.mapKeys(createWizardsObjectArray(registeredWizards), 'wizardId');
-  console.log(registeredWizardsObject);
   
   // console.log(await wizardPowerExchange.isWizardRegistered(1002))
   Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
@@ -214,4 +211,21 @@ export const deregisterWizard = (wizardId) => async dispatch => {
             payload: null
         })
   }, dispatch);
+}
+
+export const fetchRegisteredWizards = () => async dispatch => {
+  console.log("fetching all registered wizards!");
+   //retrieve all registered wizards
+   const rawRegisteredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
+   const wizardObjects = createWizardsObjectArray(rawRegisteredWizards);
+   console.log("all wizards", wizardObjects);
+   //filter all wizards where registration is false
+   const filteredWizards = _.filter(wizardObjects, ['isRegistered', true]);
+   console.log("filtered wizards", filteredWizards);
+
+   dispatch({
+    type: FETCH_REGISTERED_WIZARDS,
+    payload: { registeredWizards: filteredWizards }
+  });
+
 }
