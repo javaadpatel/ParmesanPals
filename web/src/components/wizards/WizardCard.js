@@ -5,7 +5,7 @@ export default (props) => {
   const { id, owner, affinity, initialPower, power, eliminatedBlockNumber, createdBlockNumber } = props.wizard;
   return (
     <Card>
-      <Image src='https://via.placeholder.com/150.png/' wrapped ui={false} />
+      {/* <Image src='https://via.placeholder.com/150.png/' wrapped ui={false} /> */}
       <Card.Content>
         <Card.Header>Wizard ID: {id}</Card.Header>
         <Card.Meta>

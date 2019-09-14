@@ -1,9 +1,9 @@
 import React,{ Component } from 'react';
 import { Menu,Grid } from 'semantic-ui-react';
 import { Route,Switch,Link } from 'react-router-dom';
-import InvestmentList from './investments/InvestmentList';
-import MyWizards from './investments/MyWizards';
-import WizardDuel from './investments/WizardDuel';
+import InvestmentList from './wizards/InvestmentList';
+import MyWizards from './wizards/MyWizards';
+import WizardDuel from './wizards/WizardDuel';
 
 export default class extends Component {
   constructor (props) {

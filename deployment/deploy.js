@@ -1,6 +1,5 @@
 const etherlime = require('etherlime');
-const InvestmentFactory = require('../build/InvestmentFactory.json');
-const InvestmentRanking = require('../build/InvestmentRanking.json');
+const WizardPowerExchange = require('../build/WizardPowerExchange.json');
 require('dotenv').config();
 
 const defaultConfigs = {
@@ -21,8 +20,7 @@ const deploy = async (network, secret) => {
 		process.env.DEPLOYMENT_INFURA_PRIVATEKEY,
 		defaultConfigs
 	);
-	const investmentRankingInstance = await deployer.deploy(InvestmentRanking);
-	const investmentFactoryInstance = await deployer.deploy(InvestmentFactory, false, investmentRankingInstance.contractAddress);
+	const investmentRankingInstance = await deployer.deploy(WizardPowerExchange);
 };
 
 module.exports = {
