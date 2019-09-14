@@ -1,11 +1,49 @@
 import React from 'react';
-import { Card, Image, Icon } from 'semantic-ui-react';
+import { Card, Icon, Button, Grid} from 'semantic-ui-react';
+import Modal from '../Modal';
+import WizardRegistrationFrom from './WizardRegistrationForm';
 
-export default (props) => {
-  const { id, owner, affinity, initialPower, power, eliminatedBlockNumber, createdBlockNumber } = props.wizard;
+class WizardCard extends React.Component{
+  state = {showRegistrationModal: false, selectedWizardId: null}
+
+  renderRegistrationModalContent = () => {
+    return (
+        <Grid>
+          <Grid.Row centered>
+            <Grid.Column width={6}>
+            <WizardRegistrationFrom wizardId={this.props.wizard.id} />
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+    );
+  }
+
+
+  renderRegistrationModal = () =>{
+    if (this.state.showRegistrationModal){
+      return (
+        <Modal 
+        title={`Register wizard ${this.state.selectedWizardId} for power exchange`}
+        content={this.renderRegistrationModalContent()}
+        // actions={this.renderRegistrationClaimModalActions()}
+        onDismiss={() => this.setState({showRegistrationModal: false})}
+        />
+        )
+    }
+  }
+
+  renderPowerRegistrationButton(){
+    return(
+    <Button fluid onClick={() => this.setState({showRegistrationModal: true, selectedWizardId: this.props.wizard.id})}>
+      Register 
+    </Button>
+    )
+  }  
+
+  render(){
+  const { id, owner, affinity, initialPower, power, eliminatedBlockNumber, createdBlockNumber } = this.props.wizard;
   return (
     <Card>
-      {/* <Image src='https://via.placeholder.com/150.png/' wrapped ui={false} /> */}
       <Card.Content>
         <Card.Header>Wizard ID: {id}</Card.Header>
         <Card.Meta>
@@ -20,7 +58,12 @@ export default (props) => {
       <Card.Content extra>
         <p>Created at block number: {createdBlockNumber}</p>
         <p>Eliminated at block number: {eliminatedBlockNumber || 'null'}</p>
+        {this.renderPowerRegistrationButton()}
+        {this.renderRegistrationModal()}
       </Card.Content>
     </Card>
   );
-};
+  }
+}
+
+export default WizardCard;

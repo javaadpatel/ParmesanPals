@@ -1,7 +1,7 @@
 export const rinkebyProviderUrl = 'https://rinkeby.infura.io/jkWNMTe51IxgXBcG9G4i';
 
-export const wizardPowerExchangeContractAddress = '0x532E18f4fBf4635B32Bf8cB277b8bB131ECc4037';
-
+//custom cheeze wizards contract addresses
+export const wizardPowerExchangeContractAddress = '0x4B2C4a5FFf643391C27CA081B4b01bB60b72800F';
 
 //official cheeze wizards contract addresses
 export const GateKeeperContractAddress = "0xF46aEEF279A6d5A411E16D87D3767fDa0cEC320E";

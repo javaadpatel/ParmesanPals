@@ -5,12 +5,14 @@ import {
     FETCH_ETH_PROVIDER_SUCCESS,
     FETCH_ETH_PROVIDER_ERROR,
     CREATE_WIZARD_SUCCESS,
-    CREATE_WIZARD_ERROR
+    CREATE_WIZARD_ERROR,
+    REGISTER_WIZARD,
+    FETCH_REGISTERED_WIZARDS
 } from './types';
 import {etherScanApiKey} from '../configuration';
 import Axios from 'axios';
 
-import { createGateKeeper } from '../ethereum/gateKeeperFactory';
+import { createGateKeeper, createWizardPowerExchange } from '../ethereum/gateKeeperFactory';
 import { ethers } from 'ethers';
 
 const performAction = async (actionType, actionFunc, dispatch) => {
@@ -135,4 +137,31 @@ export const createWizard = () => async dispatch => {
       payload: { }
     });
   }
+}
+
+export const isWizardRegistered = (wizardId) => async dispatch => {
+  const wizardPowerExchange = await createWizardPowerExchange();
+  const registeredWizards = await wizardPowerExchange.isWizardRegistered(wizardId);
+  console.log(registeredWizards);
+}
+
+export const registerWizard = (formValues, wizardId) => async dispatch => {
+  console.log("registering wizard", wizardId);
+  console.log(formValues);
+
+  await performAction(REGISTER_WIZARD, async () => {
+    //register wizard in investment
+    const wizardPowerExchange = await createWizardPowerExchange();
+    await wizardPowerExchange.registerWizard(wizardId, ethers.utils.parseEther(formValues.amount));
+
+    console.log("registered wizard");
+    //fetch investment
+    // var investment = await fetchInvestmentFromContract(contractAddress);
+
+
+    dispatch({
+            type: REGISTER_WIZARD,
+            payload: null
+        })
+}, dispatch);
 }

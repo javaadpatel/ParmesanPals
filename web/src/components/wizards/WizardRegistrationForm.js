@@ -1,16 +1,16 @@
 import React from 'react';
 import {Field, reduxForm} from 'redux-form';
 import {connect} from 'react-redux';
-import {makePayment} from '../../actions';
-import {MAKE_PAYMENT} from '../../actions/types';
 import {createLoadingSelector, createErrorMessageSelector} from '../../selectors';
 import {Button} from 'semantic-ui-react';
+import {registerWizard} from '../../actions';
+import {REGISTER_WIZARD} from '../../actions/types';
 
 //validation functions
 const minValue = min => value => value && value < min ? `Must be at least ${min}` : undefined;
 const minValue0 = minValue(0);
 
-class InvestmentPaymentForm extends React.Component{
+class WizardRegistrationForm extends React.Component{
     state = {loading: false}
 
     renderError({error, touched}){
@@ -37,29 +37,29 @@ class InvestmentPaymentForm extends React.Component{
     }
 
     onSubmit = (formValues) => {
-        this.props.makePayment(formValues, this.props.investmentContractAddress);
+        this.props.registerWizard(formValues, this.props.wizardId);
     }
 
     render(){
         return(
             <form
-                onSubmit={this.props.handleSubmit(this.onSubmit)}
-                className="ui form error"
+            onSubmit={this.props.handleSubmit(this.onSubmit)}
+            className="ui form error"
+        >
+            <Field
+                name="amount"
+                component={this.renderInput}
+                label="Price per unit of wizard power (ETH)"
+                type="number"
+                step="any"
+                validate={[minValue0]}
             >
-                <Field
-                    name="amount"
-                    component={this.renderInput}
-                    label="Payment Amount (ETH)"
-                    type="number"
-                    step="any"
-                    validate={[minValue0]}
-                >
-                </Field>
-                <Button compact fluid loading={this.props.isFetching} className="ui button primary">
-                    Pay
-                </Button>   
-                
-            </form>
+            </Field>
+            <Button compact fluid loading={this.props.isFetching} className="ui button primary">
+                Register Wizard
+            </Button>   
+            
+        </form>
         )
     }
 }
@@ -67,14 +67,13 @@ class InvestmentPaymentForm extends React.Component{
 const validate = (formValues) => {
     const errors = {};
     if(!formValues.amount){
-        errors.amount = "You must enter an amount in ETH above 0"
+        errors.amount = "Enter an amount in ETH above 0"
     }
-
     return errors;
 }
 
-const loadingSelector = createLoadingSelector([MAKE_PAYMENT]);
-const errorSelector = createErrorMessageSelector([MAKE_PAYMENT]);
+const loadingSelector = createLoadingSelector([REGISTER_WIZARD]);
+const errorSelector = createErrorMessageSelector([REGISTER_WIZARD]);
 const mapStateToProps = (state) => {
     return {
         isFetching: loadingSelector(state),
@@ -82,11 +81,11 @@ const mapStateToProps = (state) => {
     }
 }
 
-const ConnectedInvestmentPaymentForm = connect(mapStateToProps, {
-    makePayment
-})(InvestmentPaymentForm);
+const ConnectedWizardRegistrationForm = connect(mapStateToProps, {
+    registerWizard
+})(WizardRegistrationForm);
 
 export default reduxForm({
-    form: 'investmentPaymentForm',
+    form: 'wizardRegistrationForm',
     validate
-})(ConnectedInvestmentPaymentForm);
+})(ConnectedWizardRegistrationForm);
