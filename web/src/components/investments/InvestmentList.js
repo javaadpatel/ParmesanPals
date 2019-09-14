@@ -7,8 +7,12 @@ import {InvestmentStatusEnum} from  '../../constants';
 import { ethers } from 'ethers';
 import {createGateKeeper, createDuelResolver, createWizardGuild} from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
+import 'rc-slider/assets/index.css';
+import 'rc-tooltip/assets/bootstrap.css';
+import Slider from 'rc-slider';
 
 class InvestmentList extends React.Component{
+    state = {powerTransferPossibilities: {}, selectedPowerPossibility: 0};
     componentDidMount(){
         // this.props.fetchInvestments();
     }
@@ -174,6 +178,8 @@ class InvestmentList extends React.Component{
       }
 
       console.log("all duel results", allPowerTransferPossibilities);
+
+      this.setState({powerTransferPossibilities: allPowerTransferPossibilities});
     };
 
     buildMoveSet(moves) {
@@ -216,6 +222,42 @@ class InvestmentList extends React.Component{
 
     renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
+    renderPowerTransferSlider = () =>{
+      if (!_.isEmpty(this.state.powerTransferPossibilities)){
+        console.log("slider rendering")
+        var powerTransferPossibilitiesMarks = {};
+        const sortedPowerTransferPossibilities = _(this.state.powerTransferPossibilities).toPairs().sortBy(0).fromPairs().value();
+        Object.keys(sortedPowerTransferPossibilities).map((powerTransferPossibility)=> {
+          //inverse because they are all negative
+          powerTransferPossibilitiesMarks[-powerTransferPossibility] = -powerTransferPossibility;
+        });
+        console.log(powerTransferPossibilitiesMarks);
+        var minPowerPossiblity = Object.keys(powerTransferPossibilitiesMarks)[0];
+        // var maxPowerPossibility = Object.keys(powerTransferPossibilitiesMarks)[-1];
+        var lastIndex = Object.keys(powerTransferPossibilitiesMarks).length-1;
+        var maxPowerPossibility = Object.keys(powerTransferPossibilitiesMarks)[lastIndex]
+        console.log("min transfer", minPowerPossiblity);
+        console.log("maxTransfer:", maxPowerPossibility);
+        return (
+          <div>
+            <p>Selected power: {this.state.selectedPowerPossibility == 0 ? minPowerPossiblity: this.state.selectedPowerPossibility}</p>
+          <Slider 
+            min={Number(minPowerPossiblity)} 
+            defaultValue={Number(minPowerPossiblity)} 
+            max={Number(maxPowerPossibility)} 
+            marks={powerTransferPossibilitiesMarks} 
+            step={null} 
+            onChange={this.onSliderChange}/>
+          </div>
+        );
+      }
+    }
+
+    onSliderChange = (value) => {
+      console.log(value);
+      this.setState({selectedPowerPossibility: value});
+    }
+
     render(){
         // if (!this.props.investments){
         //     return (
@@ -234,6 +276,7 @@ class InvestmentList extends React.Component{
                 {this.renderWizardDuel()}
                 {this.renderGetWizardById()}
                 {this.renderSimulateWizardDual()}
+                {this.renderPowerTransferSlider()}
             </div>
         );
     }
