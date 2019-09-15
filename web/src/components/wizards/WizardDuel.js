@@ -266,7 +266,7 @@ class WizardDuel extends React.Component {
             <Grid.Column stretched>
               <Segment textAlign='center' className='transparent'>
                 <p>Power Transfer</p>
-                <Icon name='exchange' color='yellow' size='big' />
+                <Icon name='long arrow alternate left' color='yellow' size='huge' />
               </Segment>
               <Button 
                 loading={this.state.generatingDuelResults}
