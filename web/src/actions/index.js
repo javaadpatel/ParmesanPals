@@ -1,48 +1,22 @@
 import {
-    SIGN_IN,
-    SIGN_OUT,
-    CREATE_INVESTMENT,
-    FETCH_INVESTMENTS,
-    FETCH_INVESTMENT,
-    INVEST,
-    WITHDRAW_INVESTMENT,
-    FETCH_INVESTMENTCONTRIBUTIONSUMMARY,
-    MAKE_PAYMENT,
-    FETCH_ALLPAYMENTS,
-    WITHDRAW_PAYMENTS,
-    FETCH_INVESTMENTMANAGER,
-    UPGRADE_INVESTMENTMANAGER_RANKING,
     FETCH_WIZARDS_LOADING,
     FETCH_WIZARDS_SUCCESS,
     FETCH_WIZARDS_ERROR,
     FETCH_ETH_PROVIDER_SUCCESS,
     FETCH_ETH_PROVIDER_ERROR,
     CREATE_WIZARD_SUCCESS,
-    CREATE_WIZARD_ERROR
+    CREATE_WIZARD_ERROR,
+    REGISTER_WIZARD,
+    DEREGISTER_WIZARD,
+    FETCH_REGISTERED_WIZARDS
 } from './types';
-import {
-    createInvestmentFromContract,
-    fetchInvestmentsFromContract,
-    fetchInvestmentFromContract,
-    investToContract,
-    withdrawInvestmentFromContract,
-    fetchInvestmentContributionSummaryFromContract,
-    makePaymentToContract,
-    getPaymentsFromContract,
-    withdrawPaymentsFromContract,
-    extractInvestmentsFromContract_uPort
-} from '../ethereum/investmentContract/investmentContract';
-import {
-    fetchInvestmentManagerFromContract,
-    upgradeRankFromContract
-} from '../ethereum/investmentContract/investmentRankingContract';
-import history from '../history';
-import uPortConnect from '../ethereum/uPortConnect';
 import {etherScanApiKey} from '../configuration';
 import Axios from 'axios';
+import alchemyAPI from '../apis/alchemy';
 
-import { createGateKeeper } from '../ethereum/gateKeeperFactory';
+import { createGateKeeper, createWizardPowerExchange } from '../ethereum/gateKeeperFactory';
 import { ethers } from 'ethers';
+import _ from 'lodash';
 
 const performAction = async (actionType, actionFunc, dispatch) => {
     try{
@@ -99,196 +73,29 @@ const callEtherScanApi = async (txnHash) => {
    }
  }
 
-
-export const signIn = (userId) => {
-
-    var user =  {
-        did: userId,
-        uPortAddress: userId.split(':')[2]
-    };
-    return {
-        type: SIGN_IN,
-        payload: user
-    }
-};
-
-export const signOut = () => {
-    return {
-        type: SIGN_OUT
-    }
-}
-
-export const createInvestment = (managerAddress, formValues) => async (dispatch, getState) => {
-    var investment =  await createInvestmentFromContract(managerAddress, formValues);
-
-    uPortConnect.onResponse('createInvestmentReq').then(async payload => {
-        const txnHash = payload.payload;
-        dispatch(etherScanStatusChecker(txnHash, fetchInvestments));
-    })
-
-    dispatch({
-        type: CREATE_INVESTMENT,
-        payload: investment
-    });
-
-    //programatic navigation
-    history.push('/');
-};
-
-export const fetchInvestments = () => async dispatch => {
-    var investments = await fetchInvestmentsFromContract();
-    dispatch({
-        type: FETCH_INVESTMENTS,
-        payload: investments
-    })
-}
-
-export const fetchInvestment = (address) => async dispatch => {
-    var investment = await fetchInvestmentFromContract(address);
-    dispatch({
-        type: FETCH_INVESTMENT,
-        payload: investment
-    })
-}
-
-export const invest = (formValues, contractAddress) => async dispatch => {
-    //reload page
-    console.log(`/investments/${contractAddress}`)
-
-    await performAction(INVEST, async () => {
-        //invest in investment
-        await investToContract(contractAddress, formValues.amount);
-
-        //fetch investment
-        var investment = await fetchInvestmentFromContract(contractAddress);
-
-        dispatch({
-                type: INVEST,
-                payload: investment
-            })
-    }, dispatch);
-
-    //update investment contribution
-    dispatch(fetchInvestmentContributionSummary(contractAddress));
-    //update investment details
-    dispatch(fetchInvestment(contractAddress));
-}
-
-export const withdrawInvestment = (contractAddress) => async dispatch => {
-    await performAction(WITHDRAW_INVESTMENT, async () => {
-        //withdraw investment
-        await withdrawInvestmentFromContract(contractAddress);
-        
-        //fetch investment
-        var investment = await fetchInvestmentFromContract(contractAddress);
-        
-        dispatch({
-            type: WITHDRAW_INVESTMENT,
-            payload: investment
-        })
-    }, dispatch);
-}
-
-export const fetchInvestmentContributionSummary = (contractAddress) => async dispatch => {
-    //fetch summary
-    var investmentSummary = await fetchInvestmentContributionSummaryFromContract(contractAddress);
-    dispatch({
-        type: FETCH_INVESTMENTCONTRIBUTIONSUMMARY,
-        payload: investmentSummary
-    })
-}
-
-export const makePayment = (formValues, contractAddress) => async dispatch => {
-    await performAction(MAKE_PAYMENT, async () => {
-        //make payment
-        await makePaymentToContract(contractAddress, formValues.amount);
-
-        //get all payments
-        const allPaymentsForContract = await getPaymentsFromContract(contractAddress);
-    
-        dispatch({
-            type: MAKE_PAYMENT,
-            payload: allPaymentsForContract
-        })
-    }, dispatch);
-}
-
-export const fetchPayments = (contractAddress) => async dispatch => {
-    //get all payments
-    const allPaymentsForContract = await getPaymentsFromContract(contractAddress);
-
-    dispatch({
-        type: FETCH_ALLPAYMENTS,
-        payload: allPaymentsForContract
-    })
-}
-
-export const withdrawPayments = (contractAddress) => async dispatch => {
-    await performAction(WITHDRAW_PAYMENTS, async () => {
-
-        //withdraw all payments as currently selected address
-        await withdrawPaymentsFromContract(contractAddress);
-        
-        dispatch({
-            type: WITHDRAW_PAYMENTS,
-            payload: null
-        })
-    }, dispatch);
-}
-
-export const extractInvestments = (contractAddress) => async dispatch => {
-    /*uPort method of extracting investments*/
-    await extractInvestmentsFromContract_uPort(contractAddress);
-
-    uPortConnect.onResponse('extractInvestmentsReq').then(async payload => {
-        dispatch(etherScanStatusChecker(payload.payload, fetchInvestment, contractAddress));
-    })
-
-    /*Metamask methof of extracting investments */
-    /*
-    await performAction(EXTRACT_INVESTMENTS, async () => {
-        //as an investment creator (manager) 
-        //extract all investments made from investors
-        await extractInvestmentsFromContract(contractAddress);
-
-        //fetch investment
-        var investment = await fetchInvestmentFromContract(contractAddress);
-
-        dispatch({
-                type: EXTRACT_INVESTMENTS,
-                payload: investment
-        });
-
-    }, dispatch);
-    */
+ const createWizardsObjectArray = (rawPayments) =>{
+  var registeredWizards = rawPayments
+      .map((payment) => payment.splice(-4,4))
+      .map((wizard) => { 
+          var registeredWizardObject = {};
+          registeredWizardObject.id =  wizard[0].toNumber();
+          registeredWizardObject.pricePerPowerInEther = ethers.utils.formatEther(wizard[1]);
+          registeredWizardObject.ownerAddress =   wizard[2];
+          registeredWizardObject.isRegistered =   wizard[3];
+          return registeredWizardObject;
+  })
+  return registeredWizards;
 }
 
 
-export const fetchInvestmentManager = () => async (dispatch, getState) => {
-    const managerAddress = getState().auth.user.uPortAddress;
-    const investmentManager = await fetchInvestmentManagerFromContract(managerAddress);
-
-    dispatch({
-        type: FETCH_INVESTMENTMANAGER,
-        payload: investmentManager
-    })
-}
-
-export const upgradeInvestmentManagerRanking = (managerAddress) => async dispatch => {
-    await upgradeRankFromContract(managerAddress);
-
-    uPortConnect.onResponse('upgradeRankReq').then(async payload => {
-        dispatch(etherScanStatusChecker(payload.payload, fetchInvestmentManager));
-    })
-
-    dispatch({
-        type: UPGRADE_INVESTMENTMANAGER_RANKING,
-        payload: null
-    });
-}
-
-export const getWizardsByOwner = (ownerAddress) => dispatch => {
+export const getWizardsByOwner = (ownerAddress) => async dispatch => {
   dispatch({ type: FETCH_WIZARDS_LOADING });
+
+  //retrieve all registered wizards
+  const registeredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
+  const registeredWizardsObject = _.mapKeys(createWizardsObjectArray(registeredWizards), 'id');
+  
+  // console.log(await wizardPowerExchange.isWizardRegistered(1002))
   Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
     headers: {
       'Content-Type': 'application/json',
@@ -296,9 +103,21 @@ export const getWizardsByOwner = (ownerAddress) => dispatch => {
       'x-email': 'eemandien@gmail.com'
     },
   }).then(response => {
+    var wizards = response.data.wizards;
+    //loop through wizards and get whether the wizard is registered `registeredForPowerExchange`
+    var enrichedWizards = wizards.map((wizard) => {
+      if(registeredWizardsObject[wizard.id] === undefined){
+        wizard.isRegistered = false;
+      } else{
+        wizard.isRegistered = registeredWizardsObject[wizard.id].isRegistered;
+      }
+      return wizard;
+    });
+
     dispatch({
       type: FETCH_WIZARDS_SUCCESS,
-      payload: { ownedWizards: response.data.wizards }
+      // payload: { ownedWizards: response.data.wizards }
+      payload: { ownedWizards: enrichedWizards }
     });
   }).catch(err => {
     dispatch({
@@ -353,4 +172,69 @@ export const createWizard = () => async dispatch => {
       payload: { }
     });
   }
+}
+
+export const isWizardRegistered = (wizardId) => async dispatch => {
+  const wizardPowerExchange = await createWizardPowerExchange();
+  const registeredWizards = await wizardPowerExchange.isWizardRegistered(wizardId);
+  console.log(registeredWizards);
+}
+
+export const registerWizard = (formValues, wizardId) => async dispatch => {
+  console.log("registering wizard", wizardId);
+  console.log(formValues);
+
+  await performAction(REGISTER_WIZARD, async () => {
+    //register wizard in investment
+    const wizardPowerExchange = await createWizardPowerExchange();
+    await wizardPowerExchange.registerWizard(wizardId, ethers.utils.parseEther(formValues.amount));
+
+    console.log("registered wizard");
+
+    dispatch({
+            type: REGISTER_WIZARD,
+            payload: null
+        })
+  }, dispatch);
+}
+
+export const deregisterWizard = (wizardId) => async dispatch => {
+  await performAction(DEREGISTER_WIZARD, async () => {
+    //register wizard in investment
+    const wizardPowerExchange = await createWizardPowerExchange();
+    await wizardPowerExchange.unregisterWizard(wizardId);
+
+    console.log("deregistered wizard");
+
+    dispatch({
+            type: DEREGISTER_WIZARD,
+            payload: null
+        })
+  }, dispatch);
+}
+
+export const fetchRegisteredWizards = () => async dispatch => {
+  console.log("fetching all registered wizards!");
+   //retrieve all registered wizards
+   const rawRegisteredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
+   const wizardObjects = createWizardsObjectArray(rawRegisteredWizards);
+
+   //filter all wizards where registration is false
+   const filteredWizards = _.filter(wizardObjects, ['isRegistered', true]);
+   console.log("filtered wizards", filteredWizards);
+
+   //fetch all additional wizard data using alchemy api
+   var alchemyWizards = [];
+   await Promise.all(filteredWizards.map(async (wizard) => {
+    var alchemyWizard = await alchemyAPI.getWizardById(wizard.id);
+    alchemyWizards.push(alchemyWizard.data);
+  }));
+
+  console.log(alchemyWizards);
+
+   dispatch({
+    type: FETCH_REGISTERED_WIZARDS,
+    payload: { registeredWizards: alchemyWizards }
+  });
+
 }

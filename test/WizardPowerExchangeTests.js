@@ -56,6 +56,24 @@ const shouldRunWizardExchangeTests = true;
         assert.equal(registeredWizard.registeredForPowerExchange, true, "wizard should be registered for power exchange");
     });
 
+    it('should return true when wizard is registered', async () => {
+         //register wizard
+         await wizardPowerExchange.registerWizard(wizardForRegistrationId1.wizardId, wizardForRegistrationId1.weiPerPowerPrice);
+
+         const isWizardRegistered = await wizardPowerExchange.isWizardRegistered(wizardForRegistrationId1.wizardId);
+
+        //assert that wizard is registered
+        assert.equal(isWizardRegistered, true, "wizard should be registered");
+    })
+
+    it('should return false for wizard that has never registered', async () => {
+        //register wizard
+        const isWizardRegistered = await wizardPowerExchange.isWizardRegistered(1002);
+
+       //assert that wizard is registered
+       assert.equal(isWizardRegistered, false, "wizard has never registered");
+   })
+
     it('should save the correct wizard index', async () => {
         var wizardIndex;
          //register wizard
@@ -70,28 +88,6 @@ const shouldRunWizardExchangeTests = true;
          wizardIndex = await wizardPowerExchange.getWizardIndexById(wizardForRegistrationId2.wizardId);
          assert.equal(wizardIndex, 1, "because there should now be two wizards and wizardForRegistrationId2 should have index of 1");
     })
-
-    // it('should preserve the index of wizards when a wizard is unregistered', async () => {
-    //      //register first wizard
-    //      await wizardPowerExchange.registerWizard(wizardForRegistrationId1.wizardId, wizardForRegistrationId1.weiPerPowerPrice);
-
-    //     //register second wizard
-    //     await wizardPowerExchange.registerWizard(wizardForRegistrationId2.wizardId, wizardForRegistrationId2.weiPerPowerPrice);
-
-    //      //unregister first wizard
-    //      await wizardPowerExchange.unregisterWizard(wizardForRegistrationId1.wizardId);
-
-    //      //assert that second wizard still have index of 1
-    //      wizardIndex = await wizardPowerExchange.getWizardIndexById(wizardForRegistrationId2.wizardId);
-    //      assert.equal(wizardIndex, 1, "because there should now be two wizards and wizardForRegistrationId2 should have index of 1");
-
-    //      const wizardWithId2 = await wizardPowerExchange._wizardsRegistered(wizardIndex);
-    //      console.log(wizardWithId2);
-    //      assert.equal(wizardWithId2.wizardId, wizardForRegistrationId2.wizardId, "the wizardId should be correct");
-    //      assert.equal(wizardWithId2.weiPerPowerPrice, wizardForRegistrationId2.weiPerPowerPrice, "the power price should be correct");
-    //      assert.equal(wizardWithId2.wizardOwner, wizardForRegistrationId2.wizardOwner, "the owner address should be correct");
-    // })
-
 
     it('should allow wizard to unregister from power exchange', async() => {
         //register wizard

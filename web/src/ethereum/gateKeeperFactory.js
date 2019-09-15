@@ -2,9 +2,10 @@ import etherlime from 'etherlime';
 import GateKeeper from '../contracts/InauguralGateKeeper.json';
 import DuelResolver from '../contracts/ThreeAffinityDuelResolver.json';
 import WizardGuild from '../contracts/WizardGuild.json';
+import WizardPowerExchange from '../contracts/WizardPowerExchange.json';
 import Web3 from 'web3';
 import { ethers } from 'ethers';
-import {investmentFactoryContractAddress, rinkebyProviderUrl} from '../configuration';
+import {rinkebyProviderUrl, wizardPowerExchangeContractAddress} from '../configuration';
 
 let ethersProvider;
 
@@ -39,3 +40,8 @@ export const createWizardGuild = async () => {
         .ContractAt(WizardGuild, "0xd3d2Cc1a89307358DB3e81Ca6894442b2DB36CE8", signer, ethersProvider);
 }
 
+export const createWizardPowerExchange = async () => {
+    const signer = await ethersProvider.getSigner();
+    return await etherlime
+        .ContractAt(WizardPowerExchange, wizardPowerExchangeContractAddress , signer, ethersProvider);
+}

@@ -87,4 +87,16 @@ contract WizardPowerExchange {
         return _indexOfWizard[wizardId];
     }
 
+    function isWizardRegistered(uint256 wizardId) public view returns (bool) {
+        bool isDuplicate = isDuplicateWizard(wizardId);
+
+        //wizard has not been registered yet
+        if (!isDuplicate)
+            return false;
+        
+        //get wizard by index
+        uint index = _indexOfWizard[wizardId];
+        return _wizardsRegistered[index].registeredForPowerExchange;
+    }
+
 }
