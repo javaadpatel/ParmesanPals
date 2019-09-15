@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, Button, Grid, Segment, Label } from 'semantic-ui-react';
+import { Icon, Button, Grid, Segment, Label, Header } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { getWizardsByOwner, createWizard, fetchRegisteredWizards } from '../../actions';
 import {createDuelResolver} from '../../ethereum/gateKeeperFactory';
@@ -212,17 +212,15 @@ class WizardDuel extends React.Component {
     const newIndex = this.state.selectedWalletWizardIndex + 1;
     if(!isAtLastWizard) {
       this.setState({ selectedWalletWizardIndex: newIndex, powerTransferPossibilities: {} });
-      this.updateEthPerPowerUnit(newIndex);
     }
   }
 
   previousWalletWizard() {
-    const isFirstLastWizard = this.state.selectedWalletWizardIndex === 0;
+    const isFirstWizard = this.state.selectedWalletWizardIndex === 0;
     const newIndex = this.state.selectedWalletWizardIndex - 1;
     
-    if(!isFirstLastWizard) {
+    if(!isFirstWizard) {
       this.setState({ selectedWalletWizardIndex: newIndex, powerTransferPossibilities: {} });
-      this.updateEthPerPowerUnit(newIndex);
     }
   }
 
@@ -236,9 +234,9 @@ class WizardDuel extends React.Component {
   }
 
   previousRegisteredWizard() {
-    const isFirstLastWizard = this.state.selectedRegisteredWizardIndex === 0;
+    const isFirstWizard = this.state.selectedRegisteredWizardIndex === 0;
     const newIndex = this.state.selectedRegisteredWizardIndex - 1;
-    if(!isFirstLastWizard) {
+    if(!isFirstWizard) {
       this.setState({ selectedRegisteredWizardIndex: newIndex, powerTransferPossibilities: {} });
       this.updateEthPerPowerUnit(newIndex);
     }
@@ -266,6 +264,10 @@ class WizardDuel extends React.Component {
               {this.renderWalletBattleWizard()}
             </Grid.Column>
             <Grid.Column stretched>
+              <Segment textAlign='center' className='transparent'>
+                <p>Power Transfer</p>
+                <Icon name='exchange' color='yellow' size='big' />
+              </Segment>
               <Button 
                 loading={this.state.generatingDuelResults}
                 inverted
@@ -282,29 +284,34 @@ class WizardDuel extends React.Component {
         </Grid>
         {
           !_.isEmpty(this.state.powerTransferPossibilities) && (
-            <Segment className='transparent' textAlign='center'>
-              <h3>
-                <Icon name='ethereum' color='purple' size='big'/> Price per unit of Power (ETH): &nbsp;
-                {(this.state.registeredWizardPowerPricePerEth || 0)}
-              </h3>
-              <h3>
-                <Icon name='ethereum' color='purple' size='big'/> Power transfer price (ETH): &nbsp;
-                {(this.state.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
-              </h3>
-              <h3>
-                <Icon color='yellow' name='lightning' size='big' />
-                Selected Power to transfer: &nbsp;
-                {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
-              </h3>
-              <Slider 
-                min={0}
-                defaultValue={0}
-                max={Object.keys(this.state.powerMarkers).length - 1}
-                marks={this.state.powerMarkers}
-                step={null}
-                onChange={this.onSliderChange} />
-                <Label pointing='above' color='blue'>Use the slider to select the desired power transfer</Label>
-            </Segment>
+            <>
+              <Header as='h2' dividing color='orange'>
+                All Possible Power Transfers
+              </Header>
+              <Segment className='transparent' textAlign='center'>
+                <h3>
+                  <Icon color='yellow' name='lightning' size='big' />
+                  Selected Power to transfer: &nbsp;
+                  {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
+                </h3>
+                <h3>
+                  <Icon name='ethereum' color='purple' size='big'/> Price per unit of Power (ETH): &nbsp;
+                  {(this.state.registeredWizardPowerPricePerEth || 0)}
+                </h3>
+                <h3>
+                  <Icon name='ethereum' color='purple' size='big'/> Power transfer price (ETH): &nbsp;
+                  {(this.state.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
+                </h3>
+                <Slider 
+                  min={0}
+                  defaultValue={0}
+                  max={Object.keys(this.state.powerMarkers).length - 1}
+                  marks={this.state.powerMarkers}
+                  step={null}
+                  onChange={this.onSliderChange} />
+                  <Label pointing='above' color='blue'>Use the slider to select the desired power transfer</Label>
+              </Segment>
+            </>
           )
         }
       </>
