@@ -237,11 +237,15 @@ export const fetchRegisteredWizards = () => async dispatch => {
       alchemyWizards.push(alchemyWizard.data);
     }));
   
-    console.log(alchemyWizards);
-  
+    const mappedWizards = alchemyWizards.map(aw => {
+      const filteredWiz = filteredWizards.find(w => w.id == aw.id);
+      aw.pricePerPowerInEther = filteredWiz && (filteredWiz.pricePerPowerInEther || 0);
+      return aw;
+    });
+
     dispatch({
       type: FETCH_REGISTERED_WIZARDS,
-      payload: { registeredWizards: alchemyWizards }
+      payload: { registeredWizards: mappedWizards }
     });
   } catch (err) {
     dispatch({

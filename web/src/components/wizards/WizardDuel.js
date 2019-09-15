@@ -16,8 +16,10 @@ class WizardDuel extends React.Component {
     selectedWalletWizardIndex: 2, 
     selectedRegistedWizardIndex: 0,
     generatingDuelResults: false,
-    powerMarkers: {}
+    powerMarkers: {},
+    registeredWizardPowerPricePerEth: null
   };
+
   componentDidMount() {
     this.props.fetchWizardsByOwner(this.props.selectedAddress);
     this.props.fetchRegisteredWizards();
@@ -34,7 +36,7 @@ class WizardDuel extends React.Component {
   }
 
   renderRegisteredBattleWizard = () => {
-    if (!_.isEmpty(this.props.registeredWizards)){
+    if (!_.isEmpty(this.props.registeredWizards)) {
       return(
         //hard-coding the wizard here, this should come from state and then change
         <BattleWizardCard wizard={this.props.registeredWizards[this.state.selectedRegistedWizardIndex]} />
@@ -153,13 +155,11 @@ class WizardDuel extends React.Component {
       console.log("maxTransfer:", maxPowerPossibility);
       const powerKeys = Object.keys(powerTransferPossibilitiesMarks);
       const powerMarkers = powerKeys.reduce((acc, k, i) => { acc[i] = Number(powerTransferPossibilitiesMarks[k]); return acc; }, {});
-      console.log({ powerMarkers });
       this.setState({ powerMarkers });
     }
   }
 
   onSliderChange = (key) => {
-    console.log('onSliderChange', this.state.powerMarkers[key]);
     this.setState({ selectedPowerPossibility: this.state.powerMarkers[key] });
   }
 
@@ -199,8 +199,12 @@ class WizardDuel extends React.Component {
         {
           !_.isEmpty(this.state.powerTransferPossibilities) && (
             <Segment className='transparent' textAlign='center'>
-              <Icon color='yellow' name='lightning' size='big' />
               <h3>
+                <Icon name='ethereum' color='purple' size='big'/> Power transfer price: &nbsp;
+                {(this.props.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
+              </h3>
+              <h3>
+                <Icon color='yellow' name='lightning' size='big' />
                 Selected power: &nbsp;
                 {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
               </h3>
@@ -226,6 +230,7 @@ const mapStateToProps = state => {
     registeredWizards: state.registeredWizards.registeredWizards,
     registeredWizardsLoading: state.registeredWizards.loading,
     registeredWizardsError: state.registeredWizards.error,
+    registeredWizardPowerPricePerEth: state.registeredWizards.registeredWizards[0] && Number(state.registeredWizards.registeredWizards[0].pricePerPowerInEther),
     loadingWizards: state.fetchWizards.loading,
     selectedAddress: state.ethProvider.selectedAddress,
     incorrectNetworkSelected: state.ethProvider.incorrectNetworkSelected,
