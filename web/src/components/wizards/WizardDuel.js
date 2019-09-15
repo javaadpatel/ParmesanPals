@@ -200,12 +200,12 @@ class WizardDuel extends React.Component {
           !_.isEmpty(this.state.powerTransferPossibilities) && (
             <Segment className='transparent' textAlign='center'>
               <h3>
-                <Icon name='ethereum' color='purple' size='big'/> Power transfer price: &nbsp;
+                <Icon name='ethereum' color='purple' size='big'/> Power transfer price (ETH): &nbsp;
                 {(this.props.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
               </h3>
               <h3>
                 <Icon color='yellow' name='lightning' size='big' />
-                Selected power: &nbsp;
+                Selected power to transfer: &nbsp;
                 {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
               </h3>
               <Slider 
@@ -215,7 +215,7 @@ class WizardDuel extends React.Component {
                 marks={this.state.powerMarkers}
                 step={null}
                 onChange={this.onSliderChange} />
-                <Label pointing='above' color='blue' >Use the slider to select the desired power transfer</Label>
+                <Label pointing='above' color='blue'>Use the slider to select the desired power transfer</Label>
             </Segment>
           )
         }
