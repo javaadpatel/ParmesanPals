@@ -177,31 +177,6 @@ class InvestmentList extends React.Component{
       return temp + '0'.repeat(54);
     }
 
-    renderGetWizardById(){
-        return(
-           <Button onClick={this.getWizardById}>
-               Get Wizard By Id
-           </Button>
-        )
-    }
-
-
-    renderMoves(){
-        return(
-            <Button onClick={this.moveSet}>
-                Check Move Set
-            </Button>
-        )
-    }
-
-    renderWizardDuel(){
-        return(
-            <Button onClick={this.wizardDuel}>
-                Wizard Duel
-            </Button>
-        )
-    }
-
     renderSimulateWizardDual = () => <Button onClick={this.onGeneratePossibleDuelResults}>Generate Possible Duel Results</Button>;
 
     renderPowerTransferSlider = () =>{
@@ -252,10 +227,6 @@ class InvestmentList extends React.Component{
                     <Icon  color='green' name='circle thin' size='large' />
                 }
               </p>
-              {this.renderMoves()}
-              {this.renderWizardDuel()}
-              {this.renderGetWizardById()}
-              {this.renderSimulateWizardDual()}
             </div>
         );
     }
