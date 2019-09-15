@@ -12,6 +12,7 @@ import {
 } from './types';
 import {etherScanApiKey} from '../configuration';
 import Axios from 'axios';
+import alchemyAPI from '../apis/alchemy';
 
 import { createGateKeeper, createWizardPowerExchange } from '../ethereum/gateKeeperFactory';
 import { ethers } from 'ethers';
@@ -76,9 +77,8 @@ const callEtherScanApi = async (txnHash) => {
   var registeredWizards = rawPayments
       .map((payment) => payment.splice(-4,4))
       .map((wizard) => { 
-         console.log(wizard);
           var registeredWizardObject = {};
-          registeredWizardObject.wizardId =  wizard[0].toNumber();
+          registeredWizardObject.id =  wizard[0].toNumber();
           registeredWizardObject.pricePerPowerInEther = ethers.utils.formatEther(wizard[1]);
           registeredWizardObject.ownerAddress =   wizard[2];
           registeredWizardObject.isRegistered =   wizard[3];
@@ -93,7 +93,7 @@ export const getWizardsByOwner = (ownerAddress) => async dispatch => {
 
   //retrieve all registered wizards
   const registeredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
-  const registeredWizardsObject = _.mapKeys(createWizardsObjectArray(registeredWizards), 'wizardId');
+  const registeredWizardsObject = _.mapKeys(createWizardsObjectArray(registeredWizards), 'id');
   
   // console.log(await wizardPowerExchange.isWizardRegistered(1002))
   Axios.get('https://cheezewizards-rinkeby.alchemyapi.io/wizards?owner=' + ownerAddress, {
@@ -218,14 +218,23 @@ export const fetchRegisteredWizards = () => async dispatch => {
    //retrieve all registered wizards
    const rawRegisteredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
    const wizardObjects = createWizardsObjectArray(rawRegisteredWizards);
-   console.log("all wizards", wizardObjects);
+
    //filter all wizards where registration is false
    const filteredWizards = _.filter(wizardObjects, ['isRegistered', true]);
    console.log("filtered wizards", filteredWizards);
 
+   //fetch all additional wizard data using alchemy api
+   var alchemyWizards = [];
+   await Promise.all(filteredWizards.map(async (wizard) => {
+    var alchemyWizard = await alchemyAPI.getWizardById(wizard.id);
+    alchemyWizards.push(alchemyWizard.data);
+  }));
+
+  console.log(alchemyWizards);
+
    dispatch({
     type: FETCH_REGISTERED_WIZARDS,
-    payload: { registeredWizards: filteredWizards }
+    payload: { registeredWizards: alchemyWizards }
   });
 
 }
