@@ -40,12 +40,23 @@ class MyWizards extends React.Component {
             content={ this.props.createWizardResult.successful && 'Wizard created!' || this.props.createWizardResult.error && 'Wizard creation unsuccessful' } />
         }
         <div>
-          <Button 
-            disabled={loadingWizards} 
-            onClick={e => selectedAddress && fetchWizardsByOwner(selectedAddress)}>
-              Summon My Wizards
-          </Button>
-          <Button onClick={this.props.createWizard}> Create Wizard </Button>
+          <Segment className='transparent' textAlign='justified'>
+            <Button 
+              icon='users'
+              inverted 
+              color='yellow'
+              disabled={loadingWizards}
+              onClick={e => selectedAddress && fetchWizardsByOwner(selectedAddress)} 
+              content='Summon My Wizards'
+            />
+            <Button 
+              icon='plus'
+              inverted 
+              color='yellow' 
+              onClick={this.props.createWizard} 
+              content='Create Wizard'
+            /> 
+          </Segment>
         </div>
         {
           loadingWizards && (
