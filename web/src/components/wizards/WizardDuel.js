@@ -13,11 +13,12 @@ class WizardDuel extends React.Component {
   state = {
     powerTransferPossibilities: {}, 
     selectedPowerPossibility: 0,
-    selectedWalletWizardIndex: 2, 
-    selectedRegistedWizardIndex: 0,
+    selectedWalletWizardIndex: 0, 
+    selectedRegisteredWizardIndex: 0,
     generatingDuelResults: false,
     powerMarkers: {},
-    registeredWizardPowerPricePerEth: null
+    activePowerMarker: 0,
+    registeredWizardPowerPricePerEth: 0
   };
 
   componentDidMount() {
@@ -28,20 +29,63 @@ class WizardDuel extends React.Component {
   //this is problematic
   renderWalletBattleWizard = () => {
     if (!_.isEmpty(this.props.ownedWizards)){
-      return(
-        //hard-coding the wizard here, this should come from state and then change
-        <BattleWizardCard wizard={this.props.ownedWizards[this.state.selectedWalletWizardIndex]} />
-        )
-      }
+      return (
+        <Segment className='transparent' textAlign='center'>
+          <BattleWizardCard wizard={this.props.ownedWizards[this.state.selectedWalletWizardIndex]} />
+          <Label color='teal' image>
+            Owned Wizards
+            <Label.Detail>{this.state.selectedWalletWizardIndex + 1}/{this.props.ownedWizards.length}</Label.Detail>
+          </Label>
+          <Segment className='transparent'>
+            <Button 
+              disabled={this.state.selectedWalletWizardIndex === 0}
+              floated='left' 
+              icon='arrow left' 
+              size='big'
+              color='olive'
+              onClick={e => this.previousWalletWizard()} 
+              />
+            <Button 
+              disabled={this.state.selectedWalletWizardIndex === this.props.ownedWizards.length - 1}
+              color='olive'
+              floated='right' 
+              icon='arrow right' 
+              size='big' 
+              onClick={e => this.nextWalletWizard()} />
+          </Segment>
+        </Segment>
+      )
+    }
   }
 
   renderRegisteredBattleWizard = () => {
     if (!_.isEmpty(this.props.registeredWizards)) {
-      return(
-        //hard-coding the wizard here, this should come from state and then change
-        <BattleWizardCard wizard={this.props.registeredWizards[this.state.selectedRegistedWizardIndex]} />
-        )
-      }
+      return (
+        <Segment className='transparent' textAlign='center'>
+          <BattleWizardCard wizard={this.props.registeredWizards[this.state.selectedRegisteredWizardIndex]} />
+          <Label color='teal' image>
+            Registered Wizards
+            <Label.Detail>{this.state.selectedRegisteredWizardIndex + 1}/{this.props.registeredWizards.length}</Label.Detail>
+          </Label>
+          <Segment className='transparent'>
+            <Button 
+              disabled={this.state.selectedRegisteredWizardIndex === 0}
+              color='blue'
+              floated='left' 
+              icon='arrow left' 
+              size='big' onClick={e => this.previousRegisteredWizard()} />
+            <Button
+              disabled={this.state.selectedRegisteredWizardIndex === this.props.registeredWizards.length - 1}
+              color='blue'
+              floated='right' 
+              icon='arrow right' 
+              size='big' 
+              onClick={e => this.nextRegisteredWizard()} />
+          </Segment>
+
+        </Segment>
+      )
+    }
   }
 
   calculateSimulatedDuelResultsV2(winningRound) {
@@ -117,9 +161,9 @@ class WizardDuel extends React.Component {
 
     //extract required information from battling wizards
     const wizardAPower = this.props.ownedWizards[this.state.selectedWalletWizardIndex].power;
-    const wizardBPower = this.props.registeredWizards[this.state.selectedRegistedWizardIndex].power;
+    const wizardBPower = this.props.registeredWizards[this.state.selectedRegisteredWizardIndex].power;
     const wizardAAffinity = this.props.ownedWizards[this.state.selectedWalletWizardIndex].affinity;
-    const wizardBAffinity = this.props.registeredWizards[this.state.selectedRegistedWizardIndex].affinity;
+    const wizardBAffinity = this.props.registeredWizards[this.state.selectedRegisteredWizardIndex].affinity;
     console.log(wizardAPower, wizardAAffinity, wizardBPower, wizardBAffinity);
 
     for(var i = 1; i <= numberOfRounds; i++){
@@ -131,7 +175,6 @@ class WizardDuel extends React.Component {
         allPowerTransferPossibilities[duelResult] = duelResults[duelResult];
       });
     }
-    console.log({ allPowerTransferPossibilities });
     this.setState({ generatingDuelResults: false });
     this.setState({ powerTransferPossibilities: allPowerTransferPossibilities });
     this.configureValuesForPowerTransferSlider();
@@ -139,14 +182,12 @@ class WizardDuel extends React.Component {
 
   configureValuesForPowerTransferSlider = () => {
     if (!_.isEmpty(this.state.powerTransferPossibilities)){
-      console.log("slider rendering")
       var powerTransferPossibilitiesMarks = {};
       const sortedPowerTransferPossibilities = _(this.state.powerTransferPossibilities).toPairs().sortBy(0).fromPairs().value();
       Object.keys(sortedPowerTransferPossibilities).map((powerTransferPossibility)=> {
         //inverse because they are all negative
         powerTransferPossibilitiesMarks[-powerTransferPossibility] = -powerTransferPossibility;
       });
-      console.log(powerTransferPossibilitiesMarks);
       var minPowerPossiblity = Object.keys(powerTransferPossibilitiesMarks)[0];
       // var maxPowerPossibility = Object.keys(powerTransferPossibilitiesMarks)[-1];
       var lastIndex = Object.keys(powerTransferPossibilitiesMarks).length-1;
@@ -156,14 +197,57 @@ class WizardDuel extends React.Component {
       const powerKeys = Object.keys(powerTransferPossibilitiesMarks);
       const powerMarkers = powerKeys.reduce((acc, k, i) => { acc[i] = Number(powerTransferPossibilitiesMarks[k]); return acc; }, {});
       this.setState({ powerMarkers });
+      this.setState({ selectedPowerPossibility: this.state.powerMarkers[this.state.activePowerMarker] });
+      this.updateEthPerPowerUnit(this.state.selectedRegisteredWizardIndex);
     }
   }
 
   onSliderChange = (key) => {
+    this.setState({ activePowerMarker: key });
     this.setState({ selectedPowerPossibility: this.state.powerMarkers[key] });
   }
 
-  
+  nextWalletWizard() {
+    const isAtLastWizard = this.state.selectedWalletWizardIndex === this.props.ownedWizards.length - 1;
+    const newIndex = this.state.selectedWalletWizardIndex + 1;
+    if(!isAtLastWizard) {
+      this.setState({ selectedWalletWizardIndex: newIndex, powerTransferPossibilities: {} });
+      this.updateEthPerPowerUnit(newIndex);
+    }
+  }
+
+  previousWalletWizard() {
+    const isFirstLastWizard = this.state.selectedWalletWizardIndex === 0;
+    const newIndex = this.state.selectedWalletWizardIndex - 1;
+    
+    if(!isFirstLastWizard) {
+      this.setState({ selectedWalletWizardIndex: newIndex, powerTransferPossibilities: {} });
+      this.updateEthPerPowerUnit(newIndex);
+    }
+  }
+
+  nextRegisteredWizard() {
+    const isAtLastWizard = this.state.selectedRegisteredWizardIndex === this.props.registeredWizards.length - 1;
+    const newIndex = this.state.selectedRegisteredWizardIndex + 1;
+    if(!isAtLastWizard) {
+      this.setState({ selectedRegisteredWizardIndex: newIndex, powerTransferPossibilities: {} });
+      this.updateEthPerPowerUnit(newIndex);
+    }
+  }
+
+  previousRegisteredWizard() {
+    const isFirstLastWizard = this.state.selectedRegisteredWizardIndex === 0;
+    const newIndex = this.state.selectedRegisteredWizardIndex - 1;
+    if(!isFirstLastWizard) {
+      this.setState({ selectedRegisteredWizardIndex: newIndex, powerTransferPossibilities: {} });
+      this.updateEthPerPowerUnit(newIndex);
+    }
+  }
+
+  updateEthPerPowerUnit(registerdWizardIndex) {
+    this.props.registeredWizards.length && this.setState({ registeredWizardPowerPricePerEth: Number(this.props.registeredWizards[registerdWizardIndex].pricePerPowerInEther) })
+  }
+
   render() {
     if (this.props.registeredWizardsLoading) {
       return (
@@ -200,12 +284,16 @@ class WizardDuel extends React.Component {
           !_.isEmpty(this.state.powerTransferPossibilities) && (
             <Segment className='transparent' textAlign='center'>
               <h3>
+                <Icon name='ethereum' color='purple' size='big'/> Price per unit of Power (ETH): &nbsp;
+                {(this.state.registeredWizardPowerPricePerEth || 0)}
+              </h3>
+              <h3>
                 <Icon name='ethereum' color='purple' size='big'/> Power transfer price (ETH): &nbsp;
-                {(this.props.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
+                {(this.state.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
               </h3>
               <h3>
                 <Icon color='yellow' name='lightning' size='big' />
-                Selected power to transfer: &nbsp;
+                Selected Power to transfer: &nbsp;
                 {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
               </h3>
               <Slider 
@@ -230,7 +318,6 @@ const mapStateToProps = state => {
     registeredWizards: state.registeredWizards.registeredWizards,
     registeredWizardsLoading: state.registeredWizards.loading,
     registeredWizardsError: state.registeredWizards.error,
-    registeredWizardPowerPricePerEth: state.registeredWizards.registeredWizards[0] && Number(state.registeredWizards.registeredWizards[0].pricePerPowerInEther),
     loadingWizards: state.fetchWizards.loading,
     selectedAddress: state.ethProvider.selectedAddress,
     incorrectNetworkSelected: state.ethProvider.incorrectNetworkSelected,

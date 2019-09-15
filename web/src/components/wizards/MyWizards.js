@@ -40,7 +40,7 @@ class MyWizards extends React.Component {
             content={ this.props.createWizardResult.successful && 'Wizard created!' || this.props.createWizardResult.error && 'Wizard creation unsuccessful' } />
         }
         <div>
-          <Segment className='transparent' textAlign='justified'>
+          <Segment className='transparent' textAlign='center'>
             <Button 
               icon='users'
               inverted 
