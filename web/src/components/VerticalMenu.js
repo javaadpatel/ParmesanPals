@@ -1,7 +1,7 @@
 import React,{ Component } from 'react';
 import { Menu,Grid } from 'semantic-ui-react';
 import { Route,Switch,Link } from 'react-router-dom';
-import InvestmentList from './wizards/InvestmentList';
+import WizardHome from './wizards/WizardHome';
 import MyWizards from './wizards/MyWizards';
 import WizardDuel from './wizards/WizardDuel';
 
@@ -40,7 +40,7 @@ export default class extends Component {
           </Grid.Column>
           <Grid.Column>
             <Switch>
-              <Route path="/" exact component={InvestmentList} />
+              <Route path="/" exact component={WizardHome} />
               <Route path="/wizards" exact component={MyWizards} />
               <Route path="/simulation" exact component= {WizardDuel} />
             </Switch>
