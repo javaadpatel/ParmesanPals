@@ -8,7 +8,9 @@ import {
     CREATE_WIZARD_ERROR,
     REGISTER_WIZARD,
     DEREGISTER_WIZARD,
-    FETCH_REGISTERED_WIZARDS
+    FETCH_REGISTERED_WIZARDS,
+    FETCH_REGISTERED_WIZARDS_LOADING,
+    FETCH_REGISTERED_WIZARDS_ERROR
 } from './types';
 import {etherScanApiKey} from '../configuration';
 import Axios from 'axios';
@@ -214,27 +216,37 @@ export const deregisterWizard = (wizardId) => async dispatch => {
 }
 
 export const fetchRegisteredWizards = () => async dispatch => {
-  console.log("fetching all registered wizards!");
-   //retrieve all registered wizards
-   const rawRegisteredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
-   const wizardObjects = createWizardsObjectArray(rawRegisteredWizards);
-
-   //filter all wizards where registration is false
-   const filteredWizards = _.filter(wizardObjects, ['isRegistered', true]);
-   console.log("filtered wizards", filteredWizards);
-
-   //fetch all additional wizard data using alchemy api
-   var alchemyWizards = [];
-   await Promise.all(filteredWizards.map(async (wizard) => {
-    var alchemyWizard = await alchemyAPI.getWizardById(wizard.id);
-    alchemyWizards.push(alchemyWizard.data);
-  }));
-
-  console.log(alchemyWizards);
-
-   dispatch({
-    type: FETCH_REGISTERED_WIZARDS,
-    payload: { registeredWizards: alchemyWizards }
-  });
-
+  try {
+    dispatch({
+      type: FETCH_REGISTERED_WIZARDS_LOADING,
+      payload: { }
+    });
+    console.log("fetching all registered wizards!");
+     //retrieve all registered wizards
+     const rawRegisteredWizards = await (await createWizardPowerExchange()).getAllRegisteredWizards();
+     const wizardObjects = createWizardsObjectArray(rawRegisteredWizards);
+  
+     //filter all wizards where registration is false
+     const filteredWizards = _.filter(wizardObjects, ['isRegistered', true]);
+     console.log("filtered wizards", filteredWizards);
+  
+     //fetch all additional wizard data using alchemy api
+     var alchemyWizards = [];
+     await Promise.all(filteredWizards.map(async (wizard) => {
+      var alchemyWizard = await alchemyAPI.getWizardById(wizard.id);
+      alchemyWizards.push(alchemyWizard.data);
+    }));
+  
+    console.log(alchemyWizards);
+  
+    dispatch({
+      type: FETCH_REGISTERED_WIZARDS,
+      payload: { registeredWizards: alchemyWizards }
+    });
+  } catch (err) {
+    dispatch({
+      type: FETCH_REGISTERED_WIZARDS_ERROR,
+      payload: { }
+    });
+  }
 }
