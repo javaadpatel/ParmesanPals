@@ -36,8 +36,12 @@ i.icon.loading {
   animation: icon-loading .8s linear infinite
 }
 
-.ui.padded.segment.transparent {
+.ui.segment.transparent {
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+span.rc-slider-mark-text {
+  display: none;
 }

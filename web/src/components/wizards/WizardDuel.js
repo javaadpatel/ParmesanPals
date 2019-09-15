@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, Button, Grid, Segment } from 'semantic-ui-react';
+import { Icon, Button, Grid, Segment, Label } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { getWizardsByOwner, createWizard, fetchRegisteredWizards } from '../../actions';
 import {createDuelResolver} from '../../ethereum/gateKeeperFactory';
@@ -7,11 +7,18 @@ import BattleWizardCard from './BattleWizardCard';
 import _ from 'lodash';
 import 'rc-slider/assets/index.css';
 import 'rc-tooltip/assets/bootstrap.css';
-import Slider from 'rc-slider';
+import Slider, { Range } from 'rc-slider';
 
 class WizardDuel extends React.Component {
-  state = {powerTransferPossibilities:{}, selectedPowerPossibility: 0, selectedWalletWizardIndex: 2, selectedRegistedWizardIndex: 0}
-  componentDidMount(){
+  state = {
+    powerTransferPossibilities: {}, 
+    selectedPowerPossibility: 0,
+    selectedWalletWizardIndex: 2, 
+    selectedRegistedWizardIndex: 0,
+    generatingDuelResults: false,
+    powerMarkers: {}
+  };
+  componentDidMount() {
     this.props.fetchWizardsByOwner(this.props.selectedAddress);
     this.props.fetchRegisteredWizards();
   }
@@ -100,6 +107,8 @@ class WizardDuel extends React.Component {
   }
 
   onGeneratePossibleDuelResults = async () => {
+    this.setState({ generatingDuelResults: true });
+    
     const numberOfRounds = 5;
     //calculate power transfer possiblities for round5 wins
     var allPowerTransferPossibilities = {};
@@ -120,12 +129,13 @@ class WizardDuel extends React.Component {
         allPowerTransferPossibilities[duelResult] = duelResults[duelResult];
       });
     }
-
-    console.log(allPowerTransferPossibilities);
-    this.setState({powerTransferPossibilities: allPowerTransferPossibilities});
+    console.log({ allPowerTransferPossibilities });
+    this.setState({ generatingDuelResults: false });
+    this.setState({ powerTransferPossibilities: allPowerTransferPossibilities });
+    this.configureValuesForPowerTransferSlider();
   }
 
-  renderPowerTransferSlider = () =>{
+  configureValuesForPowerTransferSlider = () => {
     if (!_.isEmpty(this.state.powerTransferPossibilities)){
       console.log("slider rendering")
       var powerTransferPossibilitiesMarks = {};
@@ -141,67 +151,81 @@ class WizardDuel extends React.Component {
       var maxPowerPossibility = Object.keys(powerTransferPossibilitiesMarks)[lastIndex]
       console.log("min transfer", minPowerPossiblity);
       console.log("maxTransfer:", maxPowerPossibility);
-      return (
-        <div>
-          <p>Selected power: {this.state.selectedPowerPossibility == 0 ? minPowerPossiblity: this.state.selectedPowerPossibility}</p>
-        <Slider 
-          min={Number(minPowerPossiblity)} 
-          defaultValue={Number(minPowerPossiblity)} 
-          max={Number(maxPowerPossibility)} 
-          marks={powerTransferPossibilitiesMarks} 
-          step={null} 
-          onChange={this.onSliderChange}/>
-        </div>
-      );
+      const powerKeys = Object.keys(powerTransferPossibilitiesMarks);
+      const powerMarkers = powerKeys.reduce((acc, k, i) => { acc[i] = Number(powerTransferPossibilitiesMarks[k]); return acc; }, {});
+      console.log({ powerMarkers });
+      this.setState({ powerMarkers });
     }
   }
 
-  onSliderChange = (value) => {
-    console.log(value);
-    this.setState({selectedPowerPossibility: value});
+  onSliderChange = (key) => {
+    console.log('onSliderChange', this.state.powerMarkers[key]);
+    this.setState({ selectedPowerPossibility: this.state.powerMarkers[key] });
   }
 
   
-  render(){
-    const  { loadingWizards, selectedAddress, fetchWizardsByOwner, ownedWizards } = this.props;
-        // <div>
-         if (!this.props.ownedWizards){
-           return (
-            <Segment className='transparent' padded textAlign='center' >
-              <Icon name='circle notch' loading size='big' color='yellow' />
-              <h2>Summoning your wizards...</h2>
-            </Segment>
-           )
-         }
+  render() {
+    if (this.props.registeredWizardsLoading) {
+      return (
+      <Segment className='transparent' padded textAlign='center' >
+        <Icon name='circle notch' loading size='big' color='yellow' />
+        <h2>Summoning the wizards to the duel...</h2>
+      </Segment>
+      )
+    }
 
-         return(
-           <>
+    return (
+      <>
         <Grid verticalAlign='middle' columns={3} centered>
-            <Grid.Row>
-              <Grid.Column>
-                {this.renderWalletBattleWizard()}
-              </Grid.Column>
-              <Grid.Column stretched>
-                <Button onClick={this.onGeneratePossibleDuelResults}>
-                  Generate Possible Duel Results
-                </Button>
-              </Grid.Column>
-              <Grid.Column>
-                {this.renderRegisteredBattleWizard()}
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
-               {this.renderPowerTransferSlider()}
-           </>
-         )
-            
+          <Grid.Row>
+            <Grid.Column>
+              {this.renderWalletBattleWizard()}
+            </Grid.Column>
+            <Grid.Column stretched>
+              <Button 
+                loading={this.state.generatingDuelResults}
+                inverted
+                color='yellow'
+                onClick={this.onGeneratePossibleDuelResults}
+              >
+                Generate Possible Duel Results
+              </Button>
+            </Grid.Column>
+            <Grid.Column>
+              {this.renderRegisteredBattleWizard()}
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+        {
+          !_.isEmpty(this.state.powerTransferPossibilities) && (
+            <Segment className='transparent' textAlign='center'>
+              <Icon color='yellow' name='lightning' size='big' />
+              <h3>
+                Selected power: &nbsp;
+                {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
+              </h3>
+              <Slider 
+                min={0}
+                defaultValue={0}
+                max={Object.keys(this.state.powerMarkers).length - 1}
+                marks={this.state.powerMarkers}
+                step={null}
+                onChange={this.onSliderChange} />
+                <Label pointing='above' color='blue' >Use the slider to select the desired power transfer</Label>
+            </Segment>
+          )
         }
+      </>
+    )
+  }
 }
 
 const mapStateToProps = state => {
   return {
     ownedWizards: state.fetchWizards.ownedWizards,
     registeredWizards: state.registeredWizards.registeredWizards,
+    registeredWizardsLoading: state.registeredWizards.loading,
+    registeredWizardsError: state.registeredWizards.error,
     loadingWizards: state.fetchWizards.loading,
     selectedAddress: state.ethProvider.selectedAddress,
     incorrectNetworkSelected: state.ethProvider.incorrectNetworkSelected,
