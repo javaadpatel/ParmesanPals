@@ -5,12 +5,14 @@
   "scripts": {
     "start": "etherlime compile --buildDirectory=./web/src/contracts/ && cd web && react-scripts start",
     "start-react-scripts": "cd web && react-scripts start",
-    "build": "cd web && react-scripts build",
+    "build": "cd web && react-scripts build && cd .. && npm run cp-netlify-config",
+    "cp-netlify-config": "cd web && cross-env cp -f netlify.toml build",
     "test": "cd web && react-scripts test",
     "eject": "cd web && react-scripts eject"
   },
   "dependencies": {
     "axios": "^0.19.0",
+    "cross-env": "^5.2.1",
     "dotenv": "^8.0.0",
     "etherlime": "^1.0.0",
     "ethers": "4.0.24",
