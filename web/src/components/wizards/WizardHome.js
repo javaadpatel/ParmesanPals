@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Item, Tab, Menu, Label, Segment, Dimmer, Loader, Popup, Icon, Button} from 'semantic-ui-react';
+import { Icon, Button } from 'semantic-ui-react';
 import { ethers } from 'ethers';
 import { createDuelResolver, createWizardGuild } from '../../ethereum/gateKeeperFactory';
 import _ from 'lodash';
