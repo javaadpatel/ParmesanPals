@@ -148,8 +148,8 @@ class WizardDuel extends React.Component {
   }
 
   buildMoveSet(moves) {
-    const moves = '0x' + moves.map(m => `0${m}`).join('');
-    return moves + '0'.repeat(54);
+    const formattedMoves = '0x' + moves.map(m => `0${m}`).join('');
+    return formattedMoves + '0'.repeat(54);
   }
 
   onGeneratePossibleDuelResults = async () => {
