@@ -7,7 +7,7 @@ import BattleWizardCard from './BattleWizardCard';
 import _ from 'lodash';
 import 'rc-slider/assets/index.css';
 import 'rc-tooltip/assets/bootstrap.css';
-import Slider, { Range } from 'rc-slider';
+import Slider from 'rc-slider';
 
 class WizardDuel extends React.Component {
   state = {
