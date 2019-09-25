@@ -8,6 +8,7 @@ import _ from 'lodash';
 import 'rc-slider/assets/index.css';
 import 'rc-tooltip/assets/bootstrap.css';
 import Slider from 'rc-slider';
+import BigNumber from 'bignumber.js';
 
 class WizardDuel extends React.Component {
   state = {
@@ -67,7 +68,7 @@ class WizardDuel extends React.Component {
             Registered Wizards
             <Label.Detail>{this.state.selectedRegisteredWizardIndex + 1}/{this.props.registeredWizards.length}</Label.Detail>
           </Label>
-          <Segment className='transparent'>
+          <Segment className='transparent' stacked>
             <Button 
               disabled={this.state.selectedRegisteredWizardIndex === 0}
               color='blue'
@@ -141,7 +142,7 @@ class WizardDuel extends React.Component {
       // var affinity1 = 3;
       // var affinity2 = 4;
       var powers = await resolver.resolveDuel(moveSet1, moveSet2, wizardAPower, wizardBPower, wizardAAffinity, wizardBAffinity);
-      powerMoveMapping[powers.toNumber()] = {wizardAMoves: moveSet1, wizardBMoves: moveSet2};
+      powerMoveMapping[powers.toString()] = {wizardAMoves: moveSet1, wizardBMoves: moveSet2};
     }));
 
     return powerMoveMapping;
@@ -167,7 +168,6 @@ class WizardDuel extends React.Component {
     console.log(wizardAPower, wizardAAffinity, wizardBPower, wizardBAffinity);
 
     for(var i = 1; i <= numberOfRounds; i++){
-      console.log('simulating round:', i);
       var duelMoves = await this.calculateSimulatedDuelResultsV2(i);
       // //calculate power transfer possibilities for round4 wins
       const duelResults = await this.simulateDuels(duelMoves, wizardAPower, wizardAAffinity, wizardBPower, wizardBAffinity);
@@ -207,11 +207,17 @@ class WizardDuel extends React.Component {
     this.setState({ selectedPowerPossibility: this.state.powerMarkers[key] });
   }
 
+  resetSlider = () => {
+    this.setState({ activePowerMarker: 0 });
+    this.setState({ selectedPowerPossibility: this.state.powerMarkers[0] });
+  }
+
   nextWalletWizard() {
     const isAtLastWizard = this.state.selectedWalletWizardIndex === this.props.ownedWizards.length - 1;
     const newIndex = this.state.selectedWalletWizardIndex + 1;
     if(!isAtLastWizard) {
       this.setState({ selectedWalletWizardIndex: newIndex, powerTransferPossibilities: {} });
+      this.resetSlider();
     }
   }
 
@@ -221,6 +227,7 @@ class WizardDuel extends React.Component {
     
     if(!isFirstWizard) {
       this.setState({ selectedWalletWizardIndex: newIndex, powerTransferPossibilities: {} });
+      this.resetSlider();
     }
   }
 
@@ -230,6 +237,7 @@ class WizardDuel extends React.Component {
     if(!isAtLastWizard) {
       this.setState({ selectedRegisteredWizardIndex: newIndex, powerTransferPossibilities: {} });
       this.updateEthPerPowerUnit(newIndex);
+      this.resetSlider();
     }
   }
 
@@ -239,20 +247,25 @@ class WizardDuel extends React.Component {
     if(!isFirstWizard) {
       this.setState({ selectedRegisteredWizardIndex: newIndex, powerTransferPossibilities: {} });
       this.updateEthPerPowerUnit(newIndex);
+      this.resetSlider();
     }
   }
 
   updateEthPerPowerUnit(registerdWizardIndex) {
-    this.props.registeredWizards.length && this.setState({ registeredWizardPowerPricePerEth: Number(this.props.registeredWizards[registerdWizardIndex].pricePerPowerInEther) })
+    this.props.registeredWizards.length && this.setState({ registeredWizardPowerPricePerEth: new BigNumber(this.props.registeredWizards[registerdWizardIndex].pricePerPowerInEther) })
+  }
+
+  calculateTotalPriceOfTransfer(selectedPowerPossibility, powerUnitPricePerEth) {
+    return new BigNumber(powerUnitPricePerEth || 0).times(new BigNumber(selectedPowerPossibility)).toString();
   }
 
   render() {
     if (this.props.registeredWizardsLoading) {
       return (
-      <Segment className='transparent' padded textAlign='center' >
-        <Icon name='circle notch' loading size='big' color='yellow' />
-        <h2>Summoning the wizards to the duel...</h2>
-      </Segment>
+        <Segment className='transparent' padded textAlign='center' >
+          <Icon name='circle notch' loading size='big' color='yellow' />
+          <h2>Summoning the wizards to the duel...</h2>
+        </Segment>
       )
     }
 
@@ -285,7 +298,7 @@ class WizardDuel extends React.Component {
         {
           !_.isEmpty(this.state.powerTransferPossibilities) && (
             <>
-              <Header as='h2' dividing color='orange'>
+              <Header as='h2' dividing color='grey'>
                 All Possible Power Transfers
               </Header>
               <Segment className='transparent' textAlign='center'>
@@ -295,12 +308,12 @@ class WizardDuel extends React.Component {
                   {this.state.selectedPowerPossibility == 0 ? this.state.powerMarkers['0']: this.state.selectedPowerPossibility}
                 </h3>
                 <h3>
-                  <Icon name='ethereum' color='purple' size='big'/> Price per unit of Power (ETH): &nbsp;
-                  {(this.state.registeredWizardPowerPricePerEth || 0)}
+                  <Icon name='ethereum' size='big'/> Price per unit of Power (ETH): &nbsp;
+                  {this.state.registeredWizardPowerPricePerEth.toString() || 0}
                 </h3>
                 <h3>
-                  <Icon name='ethereum' color='purple' size='big'/> Power transfer price (ETH): &nbsp;
-                  {(this.state.registeredWizardPowerPricePerEth || 0) * (this.state.selectedPowerPossibility || 0)}
+                  <Icon name='ethereum' size='big'/> Power transfer price (ETH): &nbsp;
+                  { this.calculateTotalPriceOfTransfer(this.state.selectedPowerPossibility || 0, this.state.registeredWizardPowerPricePerEth || 0) }
                 </h3>
                 <Slider 
                   min={0}

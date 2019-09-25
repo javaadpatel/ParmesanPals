@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "axios": "^0.19.0",
+    "bignumber.js": "^9.0.0",
     "cross-env": "^5.2.1",
     "dotenv": "^8.0.0",
     "etherlime": "^1.0.0",
