@@ -18,20 +18,35 @@ Guids can also wage war against other guilds, with a vote taking place first to 
 - Ethereum Blockchain for smart contracts
 - DAOStack (to be implemented) for creation of cheeze wizard DAO's
 
+### Demo
+You can try Parmesan Pals [here](https://epic-benz-da50ed.netlify.com/).
+
 ### Power exchange registration
 
 <p align="center">
   <img src="demo_gifs/powerRegistration.gif" alt="registration gif" width="600" height="337" />
 </p>
 
+Wizards can be registered for power exchange through the **My Wizards** tab, and set a price to charge per unit of power sold. This will let any other wizard in the guild purchase power from your wizard.
+
 
 ### Power exchange
 
-gif here
+<p align="center">
+  <img src="demo_gifs/powerExchange.gif" alt="registration gif" width="600" height="337" />
+</p>
+
+You can exchange power, for ETH, with any registered wizard using the **Duel Simulation** tab. Simply select the wizard in your wallet to which you want power to be transferred, and then select the wizard you want to purchase power from. 
+
+When you click **Generate Possible Duel Results**, all the possible power transfers will be listed and you will be able to see how much this power transfer will cost. Once you've selected an amount of power to purchase, clicking **Duel** will initiate the power transfer (to be implemented).
 
 
 ## Application Architecture
 ---
+
+<p align="center">
+  <img width="700" height="500" src="Architecture/ParmesanPals_Architecture.png">
+</p>
 
 ### Testing
 The tests for the **WizardPowerExchange.sol** can be found in the **test/WizardPowerExchangeTests.js** file.
